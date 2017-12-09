@@ -66,4 +66,18 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     filter(ob)(BigInt(_).mod(2) != 0) shouldBe ob
   }
+
+  behavior of "exericse 4.2"
+
+  it should "return None when empty sequence" in {
+    val xs: Seq[Double] = Seq()
+
+    variance(xs) shouldBe None
+  }
+
+  it should "return the calculated variance for a sequence of doubles" in {
+    val xs = Seq(1.0, 2.0, 3.0, 4.0)
+
+    variance(xs) shouldBe Some(1.25)
+  }
 }
