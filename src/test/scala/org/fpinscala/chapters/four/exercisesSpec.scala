@@ -61,10 +61,16 @@ class ExercisesSpec extends FlatSpec with Matchers {
     filter(ob)(a => true) shouldBe None
   }
 
-  it should "return the option value when filter applies" in {
+  it should "return the option value when filter predicate applies" in {
     val ob = Some(1)
 
     filter(ob)(BigInt(_).mod(2) != 0) shouldBe ob
+  }
+
+  it should "return None when filter predicate does not apply" in {
+    val ob = Some(1)
+
+    filter(ob)(BigInt(_).mod(2) == 0) shouldBe None
   }
 
   behavior of "exericse 4.2"
@@ -79,5 +85,23 @@ class ExercisesSpec extends FlatSpec with Matchers {
     val xs = Seq(1.0, 2.0, 3.0, 4.0)
 
     variance(xs) shouldBe Some(1.25)
+  }
+
+  behavior of "exercise 4.3"
+
+  it should "return None when a single option argument is None" in {
+    val a: Option[Int] = None
+    val b              = Some(2)
+    val f              = (a: Int, b: Int) => a + b
+
+    map2(a, b)(f) shouldBe None
+  }
+
+  it should "return calculated value when applying f on bowth option arguments" in {
+    val a = Some(1)
+    val b = Some(2)
+    val f = (a: Int, b: Int) => (a + b).toString
+
+    map2(a, b)(f) shouldBe Some("3")
   }
 }
