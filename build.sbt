@@ -9,7 +9,9 @@ lazy val root = (project in file("."))
     scalafmtVersion := "1.3.0",
     scalafmtOnCompile := true,
     scalacOptions := compilerFlags,
+    logBuffered in Test := false,
     libraryDependencies ++= Seq(
+      "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
     )
   )
