@@ -43,6 +43,14 @@ object Exercises {
         case (Some(av), Some(bv)) => Some(f(av, bv))
         case (_, _)               => None
       }
+
+    def sequence[A](as: List[Option[A]]): Option[List[A]] =
+      as match {
+        case Nil            => None
+        case None :: _      => None
+        case Some(x) :: Nil => Some(List(x))
+        case Some(v) :: xs  => flatMap(sequence(xs))(a => Some(v :: a))
+      }
   }
 
   def mean(xs: Seq[Double]): Option[Double] =

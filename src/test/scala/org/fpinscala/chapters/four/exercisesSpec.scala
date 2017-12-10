@@ -104,4 +104,24 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     map2(a, b)(f) shouldBe Some("3")
   }
+
+  behavior of "exercise 4.4"
+
+  it should "return None when empty List" in {
+    val as = Nil
+
+    sequence(as) shouldBe None
+  }
+
+  it should "return None if any element is None" in {
+    val as = Some(2) :: None :: Some(3) :: Nil
+
+    sequence(as) shouldBe None
+  }
+
+  it should "return an option of a list of values when some option value" in {
+    val as = Some(2) :: Some(4) :: Some(3) :: Nil
+
+    sequence(as) shouldBe Some(2 :: 4 :: 3 :: Nil)
+  }
 }
