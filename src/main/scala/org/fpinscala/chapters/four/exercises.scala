@@ -43,14 +43,6 @@ object Exercises {
         case (Some(av), Some(bv)) => Some(f(av, bv))
         case (_, _)               => None
       }
-
-    def sequence[A](as: List[Option[A]]): Option[List[A]] =
-      as match {
-        case Nil            => None
-        case None :: _      => None
-        case Some(x) :: Nil => Some(List(x))
-        case Some(v) :: xs  => flatMap(sequence(xs))(a => Some(v :: a))
-      }
   }
 
   def mean(xs: Seq[Double]): Option[Double] =
@@ -59,4 +51,26 @@ object Exercises {
 
   def variance(xs: Seq[Double]): Option[Double] =
     Option.flatMap(mean(xs))(m => mean(xs.map(x => math.pow(x - m, 2))))
+
+  def sequence[A](as: List[Option[A]]): Option[List[A]] =
+    as match {
+      case Nil            => None
+      case None :: _      => None
+      case Some(x) :: Nil => Some(List(x))
+      case Some(v) :: xs  => Option.flatMap(sequence(xs))(a => Some(v :: a))
+    }
+
+  def traverse[A, B](as: List[Option[A]])(f: A => Option[B]): Option[List[B]] =
+    sequence(as map (i => Option.flatMap(i)(f)))
+
+  def traverseSinglePass[A, B](as: List[Option[A]])(f: A => Option[B]): Option[List[B]] =
+    as match {
+      case Nil            => None
+      case None :: _      => None
+      case Some(x) :: Nil => Option.map(f(x))(a => List(a))
+      case Some(v) :: xs =>
+        Option.flatMap(traverseSinglePass(xs)(f))(
+          a => Option.flatMap(f(v))(b => Some(b :: a))
+        )
+    }
 }

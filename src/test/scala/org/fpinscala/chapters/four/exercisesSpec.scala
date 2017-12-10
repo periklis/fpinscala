@@ -124,4 +124,34 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     sequence(as) shouldBe Some(2 :: 4 :: 3 :: Nil)
   }
+
+  behavior of "exercise 4.5"
+
+  it should "return None when f applied on an elements returns None" in {
+    val as = Some(2) :: None :: Some(3) :: Nil
+
+    traverse(as)(a => Some(a)) shouldBe None
+  }
+
+  it should "return list of transformed elements" in {
+    val as = Some(2) :: Some(4) :: Some(3) :: Nil
+
+    traverse(as)(a => Some(a + 1)) shouldBe Some(List(3, 5, 4))
+  }
+
+  it should "return None when traversing empty List" in {
+    traverseSinglePass(Nil: List[Option[Int]])(Some(_)) shouldBe None
+  }
+
+  it should "return None when f applied on an elements returns None on single pass" in {
+    val as = Some(2) :: None :: Some(3) :: Nil
+
+    traverseSinglePass(as)(Some(_)) shouldBe None
+  }
+
+  it should "return list of transformed elements on single pass" in {
+    val as = Some(2) :: Some(4) :: Some(3) :: Nil
+
+    traverseSinglePass(as)(a => Some(a + 1)) shouldBe Some(List(3, 5, 4))
+  }
 }
