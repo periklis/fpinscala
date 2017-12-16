@@ -1,4 +1,5 @@
-val scalaTestVersion = "3.0.4"
+val scalaCheckVersion = "1.13.4"
+val scalaTestVersion  = "3.0.4"
 
 lazy val root = (project in file("."))
   .settings(
@@ -11,8 +12,9 @@ lazy val root = (project in file("."))
     scalacOptions := compilerFlags,
     logBuffered in Test := false,
     libraryDependencies ++= Seq(
-      "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
-      "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
+      "org.scalactic"  %% "scalactic"  % scalaTestVersion  % "test",
+      "org.scalatest"  %% "scalatest"  % scalaTestVersion  % "test",
+      "org.scalacheck" %% "scalacheck" % scalaCheckVersion % "test"
     )
   )
 
