@@ -2,9 +2,12 @@ package org.fpinscala.chapters.four
 
 import org.fpinscala.chapters.four.Exercises._
 import org.fpinscala.chapters.four.Exercises.Option._
+import org.fpinscala.chapters.four.Generators._
+import org.scalacheck.Gen
 import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.prop.PropertyChecks
 
-class ExercisesSpec extends FlatSpec with Matchers {
+class ExercisesSpec extends FlatSpec with Matchers with PropertyChecks {
 
   behavior of "exercise 4.1 - Option"
 
@@ -153,5 +156,15 @@ class ExercisesSpec extends FlatSpec with Matchers {
     val as = Some(2) :: Some(4) :: Some(3) :: Nil
 
     traverseSinglePass(as)(a => Some(a + 1)) shouldBe Some(List(3, 5, 4))
+  }
+
+  it should "return list of transformed elements on single pass for gen lists" in {
+    val f = (a: Int) => a + 1
+
+    forAll(traversableOf(Gen.posNum[Int])(f))({
+      case (actual, expected) => {
+        traverseSinglePass(actual)(a => Some(f(a))) shouldBe expected
+      }
+    })
   }
 }
