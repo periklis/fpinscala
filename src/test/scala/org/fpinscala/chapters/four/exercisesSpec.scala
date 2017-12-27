@@ -167,4 +167,114 @@ class ExercisesSpec extends FlatSpec with Matchers with PropertyChecks {
       }
     })
   }
+
+  behavior of "exercise 4.6"
+
+  it should "return the left value when failure case given to map" in {
+    val e = Left("An error occured")
+
+    Either.map(e)(a => a) shouldBe e
+  }
+
+  it should "return the right mapped value when success case given to map" in {
+    val r = Right(1)
+
+    Either.map(r)(_ + 1) shouldBe Right(2)
+  }
+
+  it should "return the left value when failure case given to flatten and map" in {
+    val e = Left("An error occured")
+
+    Either.flatMap(e)(a => a) shouldBe e
+  }
+
+  it should "return the right mapped value when success case given to flatten and map" in {
+    val r = Right(1)
+
+    Either.flatMap(r)(a => Right(a + 1)) shouldBe Right(2)
+  }
+
+  it should "return left value when sucess case given but map fails" in {
+    val e = Left("An error occured in map")
+    val r = Right(1)
+
+    Either.flatMap(r)(_ => e) shouldBe e
+  }
+
+  it should "return the original value when success case given" in {
+    val e = Right(1)
+    val o = Right(2)
+
+    Either.orElse(e)(o) shouldBe e
+  }
+
+  it should "return the other right value when failure case given" in {
+    val e = Left("Error case")
+    val o = Right(1)
+
+    Either.orElse(e)(o) shouldBe o
+  }
+
+  it should "return the other failure case when both fail" in {
+    val e = Left("Error case")
+    val o = Left("Other error case")
+
+    Either.orElse(e)(o) shouldBe o
+  }
+
+  it should "return the left lhs value if any failure case given" in {
+    val e = Left("Error case")
+    val o = Right(1)
+
+    Either.map2(e)(o)((a, _) => a) shouldBe e
+  }
+
+  it should "retutn the left rhs value if any failure case given" in {
+    val e = Right(1)
+    val o = Left("Error case")
+
+    Either.map2(e)(o)((a, _) => a) shouldBe o
+  }
+
+  it should "return the right mapped value if both success cases given" in {
+    val e1 = Right(1)
+    val e2 = Right(2)
+
+    Either.map2(e1)(e2)(_ + _) shouldBe Right(3)
+  }
+
+  behavior of "exercise 4.7"
+
+  it should "return the right empty list value when empty list given" in {
+    Either.sequence(Nil) shouldBe Right(Nil)
+  }
+
+  it should "return the left value when at least one failure case in list given" in {
+    val es = Right(2) :: Right(3) :: Left("error") :: Right(4) :: Nil
+
+    Either.sequence(es) shouldBe Left("error")
+  }
+
+  it should "retutn the right list of values when only success cases in list given" in {
+    val es = Right(2) :: Right(3) :: Right(5) :: Right(4) :: Nil
+
+    Either.sequence(es) shouldBe Right(2 :: 3 :: 5 :: 4 :: Nil)
+  }
+
+  it should "return the right Nil value when empty list given" in {
+    Either.traverse(Nil)(Right(_)) shouldBe Right(Nil)
+  }
+
+  it should "retutn the right mapped values list when map returns only sucess case" in {
+    val as = 1 :: 2 :: 3 :: Nil
+
+    Either.traverse(as)(a => Right(a + 1)) shouldBe Right(2 :: 3 :: 4 :: Nil)
+  }
+
+  it should "retutn the left mapped value when map fails at least once" in {
+    val as = 1 :: 2 :: 3 :: Nil
+    val f  = (a: Int) => if (a % 2 !== 0) Right(1) else Left("Not even number")
+
+    Either.traverse(as)(f) shouldBe Left("Not even number")
+  }
 }

@@ -73,4 +73,64 @@ object Exercises {
           a => Option.flatMap(f(v))(b => Some(b :: a))
         )
     }
+
+  sealed trait Either[+E, +A]
+  case class Left[+E](value: E)  extends Either[E, Nothing]
+  case class Right[+A](value: A) extends Either[Nothing, A]
+
+  object Either {
+    def map[E, A, B]: Either[E, A] => (A => B) => Either[E, B] =
+      e =>
+        f =>
+          e match {
+            case Left(e)  => Left(e)
+            case Right(a) => Right(f(a))
+      }
+
+    def flatMap[E, EE >: E, A, B]: Either[E, A] => (A => Either[EE, B]) => Either[EE, B] =
+      e =>
+        f =>
+          e match {
+            case Left(e)  => Left(e)
+            case Right(a) => f(a)
+      }
+
+    def orElse[E, EE >: E, A, B >: A]: Either[E, A] => (=> Either[EE, B]) => Either[EE, B] =
+      e =>
+        o =>
+          e match {
+            case Left(_)  => o
+            case Right(_) => e
+      }
+
+    def map2[E, EE >: E, A, B, C]: Either[E, A] => Either[EE, B] => ((A, B) => C) => Either[EE, C] =
+      lhs =>
+        rhs =>
+          f =>
+            (lhs, rhs) match {
+              case (Right(a), Right(b)) => Right(f(a, b))
+              case (Left(e), _)         => Left(e)
+              case (_, Left(e))         => Left(e)
+
+      }
+
+    def sequence[E, A]: List[Either[E, A]] => Either[E, List[A]] =
+      _ match {
+        case Nil => Right(Nil)
+        case x :: xs =>
+          x match {
+            case Right(v) => flatMap(sequence(xs))(a => Right(v :: a))
+            case Left(e)  => Left(e)
+          }
+      }
+
+    def traverse[E, A, B]: List[A] => (A => Either[E, B]) => Either[E, List[B]] =
+      es =>
+        f =>
+          es match {
+            case Nil      => Right(Nil)
+            case x :: Nil => map(f(x))(_ :: Nil)
+            case x :: xs  => flatMap(f(x))(a => flatMap(traverse(xs)(f))(b => Right(a :: b)))
+      }
+  }
 }
