@@ -277,4 +277,68 @@ class ExercisesSpec extends FlatSpec with Matchers with PropertyChecks {
 
     Either.traverse(as)(f) shouldBe Left("Not even number")
   }
+
+  behavior of "exercise 4.8"
+
+  it should "return the right Person value when non-empty name and age in range given" in {
+    Person.mkPerson("John", 12) shouldBe Right(Person(Name("John"), Age(12)))
+  }
+
+  it should "return a sequence of all errors when making a person with empty name and age out of range" in {
+    Person.mkPerson("", -1) shouldBe Left(List("Name is empty", "Age out of range"))
+  }
+
+  it should "return a sequence of all errors when making a person with empty name and valid age" in {
+    Person.mkPerson("", 12) shouldBe Left(List("Name is empty"))
+  }
+
+  it should "return a sequence of all errors when making a person with valid name and age out of range" in {
+    Person.mkPerson("John", -1) shouldBe Left(List("Age out of range"))
+  }
+
+  it should "return the right empty list when empty list given" in {
+    Either.WithAllErrors.sequence(Nil)(Nil) shouldBe Right(Nil)
+  }
+
+  it should "return the sequence of all right values when only a list of success cases given" in {
+    val es = Right(2) :: Right(3) :: Right(4) :: Nil
+
+    Either.WithAllErrors.sequence(es)(Nil) shouldBe Right(2 :: 3 :: 4 :: Nil)
+  }
+
+  it should "return the sequence of all left values when more than one failure case between list given" in {
+    val es = Right(2) :: Right(3) :: Left("error 1") :: Right(4) :: Left("error 2") :: Right(5) :: Nil
+
+    Either.WithAllErrors.sequence(es)(Nil) shouldBe Left(List("error 1", "error 2"))
+  }
+
+  it should "return the sequence of all left values when more than one failure case in list given" in {
+    val es = Right(2) :: Right(3) :: Left("error 1") :: Right(4) :: Left("error 2") :: Nil
+
+    Either.WithAllErrors.sequence(es)(Nil) shouldBe Left(List("error 1", "error 2"))
+  }
+
+  it should "return the traversed right empty list when empty list given" in {
+    Either.WithAllErrors.traverse(Nil)(Nil)(a => a) shouldBe Right(Nil)
+  }
+
+  it should "return the sequence of all right mapped values when only a list of success cases given" in {
+    val es = 2 :: 3 :: 4 :: Nil
+
+    Either.WithAllErrors.traverse(es)(Nil)(a => Right(a + 1)) shouldBe Right(3 :: 4 :: 5 :: Nil)
+  }
+
+  it should "return the traversed list of all left values when more than one failure case between list given" in {
+    val es = 1 :: 2 :: 3 :: 4 :: Nil
+    val f  = (a: Int) => if (BigInt(a).mod(2) != 0) Left(List(s"$a is not an even number")) else Right(a)
+
+    Either.WithAllErrors.traverse(es)(Nil)(f) shouldBe Left(List("1 is not an even number", "3 is not an even number"))
+  }
+
+  it should "return the traversed list of all left values when more than one failure case in list given" in {
+    val es = 1 :: 2 :: 3 :: Nil
+    val f  = (a: Int) => if (BigInt(a).mod(2) != 0) Left(List(s"$a is not an even number")) else Right(a)
+
+    Either.WithAllErrors.traverse(es)(Nil)(f) shouldBe Left(List("1 is not an even number", "3 is not an even number"))
+  }
 }
