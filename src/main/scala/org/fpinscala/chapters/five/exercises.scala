@@ -23,6 +23,12 @@ object Exercises {
       else
         cons(as.head)(apply(as.tail: _*))
 
+    def headOption[A]: Stream[A] => Option[A] =
+      _ match {
+        case Empty      => None
+        case Cons(h, _) => Some(h())
+      }
+
     def toList[A]: Stream[A] => List[A] =
       _ match {
         case Empty      => Nil
@@ -84,6 +90,14 @@ object Exercises {
     object WithFoldRight {
       def takeWhile[A]: Stream[A] => (A => Boolean) => Stream[A] =
         as => f => foldRight(as)(Stream[A]())((a, b) => if (f(a)) Cons(() => a, () => b) else Empty)
+
+      def headOption[A]: Stream[A] => Option[A] =
+        foldRight(_)(None: Option[A]) { (a, b) =>
+          (a, b) match {
+            case (h, _) => Some(h)
+            case _      => b
+          }
+        }
     }
   }
 }

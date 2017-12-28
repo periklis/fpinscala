@@ -142,4 +142,24 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     toList(WithFoldRight.takeWhile(as)(evenNumber)) should contain allElementsOf (toList(Stream(2, 4, 6)))
   }
+
+  behavior of "exercise 5.6"
+
+  it should "return None when empty stream given" in {
+    headOption(Empty) shouldBe None
+  }
+
+  it should "return Some head value when non empty stream given" in {
+    val as = Stream(2, 3, 4, 5)
+    headOption(as) shouldBe Some(2)
+  }
+
+  it should "return None when empty stream given using foldRight" in {
+    WithFoldRight.headOption(Empty) shouldBe None
+  }
+
+  it should "return Some head value when non empty stream given using foldRight" in {
+    val as = Stream(2, 3, 4, 5)
+    WithFoldRight.headOption(as) shouldBe Some(2)
+  }
 }
