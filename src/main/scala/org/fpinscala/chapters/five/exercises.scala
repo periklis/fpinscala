@@ -35,6 +35,16 @@ object Exercises {
         case Cons(h, t) => h() :: toList(t())
       }
 
+    def toListDeep[A]: Stream[Stream[A]] => List[A] =
+      _ match {
+        case Empty => Nil
+        case Cons(h, t) =>
+          h() match {
+            case Empty        => Nil
+            case Cons(h1, t1) => (h1() :: toList(t1())) ::: toListDeep(t())
+          }
+      }
+
     def take[A]: Stream[A] => Int => Stream[A] =
       as =>
         n =>
@@ -243,5 +253,17 @@ object Exercises {
             case (Empty, Cons(_, _))          => true
             case (Cons(h1, t1), Cons(h2, t2)) => (h1() == h2() && startsWith(t1())(t2()))
       }
+
+    def tails[A]: Stream[A] => Stream[Stream[A]] =
+      as =>
+        unfold(as) {
+          _ match {
+            case Empty => None
+            case s @ _ => Some((s, drop(s)(1)))
+          }
+      }
+
+    def hasSubsequence[A]: Stream[A] => Stream[A] => Boolean =
+      as => ns => exists(tails(as))((ss: Stream[A]) => startsWith(ns)(ss))
   }
 }

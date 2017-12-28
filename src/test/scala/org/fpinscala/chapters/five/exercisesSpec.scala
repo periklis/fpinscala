@@ -2,9 +2,9 @@ package org.fpinscala.chapters.five
 
 import org.fpinscala.chapters.five.Exercises._
 import org.fpinscala.chapters.five.Exercises.Stream._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{FlatSpec, Matchers, Inspectors}
 
-class ExercisesSpec extends FlatSpec with Matchers {
+class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
 
   behavior of "exercise 5.1"
 
@@ -108,21 +108,21 @@ class ExercisesSpec extends FlatSpec with Matchers {
   }
 
   it should "return false when applying predicate for all elements of the empty stream" in {
-    forAll(Empty)(_ == 1) shouldBe false
+    Stream.forAll(Empty)(_ == 1) shouldBe false
   }
 
   it should "return false when predicate fails for at least one element of the stream" in {
     val as = Stream(2, 3, 4, 6)
     val f  = (a: Int) => BigInt(a).mod(2) == 0
 
-    forAll(as)(f) shouldBe false
+    Stream.forAll(as)(f) shouldBe false
   }
 
   it should "return true when predicate passes for all elements of the stream" in {
     val as = Stream(2, 4, 6, 8)
     val f  = (a: Int) => BigInt(a).mod(2) == 0
 
-    forAll(as)(f) shouldBe true
+    Stream.forAll(as)(f) shouldBe true
   }
 
   behavior of "exercise 5.5"
@@ -371,5 +371,67 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
   it should "return true when a non empty stream is prefix of another non empty stream" in {
     startsWith(Stream(1, 2))(Stream(1, 2, 3)) shouldBe true
+  }
+
+  behavior of "exercise 5.15 - toListDeep for tails"
+
+  it should "return an empty list when empty stream given" in {
+    toListDeep(Empty) shouldBe Nil
+  }
+
+  it should "retutn a list of all substreams' evaluated items when non-empty stream given" in {
+    val as = Stream(Stream(2, 3), Stream(4, 5), Stream(6))
+    toListDeep(as) shouldBe List(2, 3, 4, 5, 6)
+  }
+
+  behavior of "exercise 5.15 - tails"
+
+  it should "return the empty stream as suffix when the empty stream given" in {
+    tails(Empty) shouldBe Empty
+  }
+
+  it should "return two suffixes when a single element stream given" in {
+    val actual   = tails(Stream(2))
+    val expected = Stream(Stream(2), Stream())
+
+    toListDeep(actual) should contain allElementsOf (toListDeep(expected))
+  }
+
+  it should "return n + 1 suffixes when a n-element stream given" in {
+    val actual   = tails(Stream(1, 2, 3))
+    val expected = Stream(Stream(1, 2, 3), Stream(2, 3), Stream(3), Stream())
+
+    toListDeep(actual) should contain allElementsOf (toListDeep(expected))
+  }
+
+  behavior of "exercise 5.15 - hasSubsequence"
+
+  it should "return true when needle is the empty stream" in {
+    val as = Stream(1, 2, 3)
+
+    hasSubsequence(as)(Empty) shouldBe true
+  }
+
+  it should "return true when needle is a substream of stream" in {
+    val as = Stream(1, 2, 3)
+    val ns = Stream(2)
+
+    hasSubsequence(as)(ns) shouldBe true
+  }
+
+  it should "return false when needle is not a substream of stream" in {
+    val as = Stream(1, 2, 3)
+    val ns = Stream(4)
+
+    hasSubsequence(as)(ns) shouldBe false
+  }
+
+  it should "return true if each needle is a substream of stream" in {
+    val as  = Stream(1, 2, 3, 4)
+    val ns1 = Stream(1, 2)
+    val ns2 = Stream(2, 3)
+    val ns3 = Stream(3, 4)
+
+    forAll(Seq(ns1, ns2, ns3))((ns) => hasSubsequence(as)(ns) shouldBe true)
   }
 }
