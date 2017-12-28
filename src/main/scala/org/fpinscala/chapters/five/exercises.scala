@@ -140,5 +140,25 @@ object Exercises {
           def mapf(a: A, b: => Stream[B]): Stream[B] = append(f(a))(b)
           foldRight(as)(Empty: Stream[B])(mapf)
       }
+
+    // $COVERAGE-OFF$
+    object Infinite {
+      def constant[A]: A => Stream[A] =
+        a => cons(a)(constant(a))
+
+      def from: Int => Stream[Int] =
+        n => cons(n)(from(n + 1))
+
+      def fibs: Stream[BigInt] = {
+        def fibsf(acc: Stream[BigInt], a: BigInt, b: BigInt): Stream[BigInt] = {
+          val as = append(acc)(Stream(a + b))
+          append(as)(fibsf(as, b, a + b))
+        }
+
+        fibsf(Empty, 0, 1)
+      }
+    }
+    // $COVERAGE-ON$
+
   }
 }
