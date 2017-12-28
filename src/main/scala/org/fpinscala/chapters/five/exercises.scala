@@ -233,5 +233,15 @@ object Exercises {
                 }
         }
     }
+
+    def startsWith[A]: Stream[A] => Stream[A] => Boolean =
+      as =>
+        bs =>
+          (as, bs) match {
+            case (Empty, Empty)               => true
+            case (Cons(_, _), Empty)          => false
+            case (Empty, Cons(_, _))          => true
+            case (Cons(h1, t1), Cons(h2, t2)) => (h1() == h2() && startsWith(t1())(t2()))
+      }
   }
 }

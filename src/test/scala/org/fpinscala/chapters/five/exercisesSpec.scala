@@ -354,4 +354,22 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     toList(res) should contain allElementsOf (toList(expected))
   }
+
+  behavior of "exercise 5.14"
+
+  it should "return false when prefix is non empty stream for the empty stream" in {
+    startsWith(Stream(2))(Empty) shouldBe false
+  }
+
+  it should "return true when prefix is empty stream for the empty stream" in {
+    startsWith(Empty)(Empty) shouldBe true
+  }
+
+  it should "return true when a non empty stream is prefix of itself" in {
+    startsWith(Stream(2))(Stream(2)) shouldBe true
+  }
+
+  it should "return true when a non empty stream is prefix of another non empty stream" in {
+    startsWith(Stream(1, 2))(Stream(1, 2, 3)) shouldBe true
+  }
 }
