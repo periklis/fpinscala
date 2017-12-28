@@ -162,4 +162,52 @@ class ExercisesSpec extends FlatSpec with Matchers {
     val as = Stream(2, 3, 4, 5)
     WithFoldRight.headOption(as) shouldBe Some(2)
   }
+
+  behavior of "exercise 5.7 - map"
+
+  it should "return the empty stream when mapping over the empty stream" in {
+    map(Empty)(a => a) shouldBe Empty
+  }
+
+  it should "return the lazy mapped stream when non empty stream given" in {
+    val as = Stream(2, 3, 4, 5)
+
+    toList(map(as)(_ + 1)) should contain allElementsOf (toList(Stream(3, 4, 5, 6)))
+  }
+
+  behavior of "exercise 5.7 - filter"
+
+  it should "return the empty stream when filtering over the empty stream" in {
+    filter(Empty)(_ => true) shouldBe Empty
+  }
+
+  it should "return the stream of elements passing the filter predicate when non empty stream given" in {
+    val as         = Stream(2, 3, 4, 5, 6, 7, 8)
+    val evenNumber = (a: Int) => BigInt(a).mod(2) == 0
+
+    toList(filter(as)(evenNumber)) should contain allElementsOf (toList(Stream(2, 4, 6, 8)))
+  }
+
+  behavior of "exercise 5.7 - append"
+
+  it should "return a single element stream when appending one element to the empty stream" in {
+    toList(append(Empty)(Stream(1))) should contain allElementsOf (toList(Stream(1)))
+  }
+
+  it should "return a new stream with all elements plus the one given when appending one element to a non empty stream" in {
+    val as = Stream(1, 2, 3, 4, 5)
+    toList(append(as)(Stream(6))) should contain allElementsOf (toList(Stream(1, 2, 3, 4, 5, 6)))
+  }
+
+  behavior of "exercise 5.7 - flatMap"
+
+  it should "return the empty stream when flat-mapping over the empty stream" in {
+    flatMap(Empty)(a => Stream(a)) shouldBe Empty
+  }
+
+  it should "return the lazy flat-mapped stream when non empty stream given" in {
+    val as = Stream(2, 3, 4, 5)
+
+    toList(flatMap(as)(a => Stream(a + 1))) should contain allElementsOf (toList(Stream(3, 4, 5, 6)))
+  }
 }

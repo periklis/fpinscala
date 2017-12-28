@@ -67,7 +67,7 @@ object Exercises {
             case _                    => as
       }
 
-    def foldRight[A, B]: Stream[A] => B => ((A, => B) => B) => B =
+    def foldRight[A, B]: Stream[A] => (=> B) => ((A, => B) => B) => B =
       as =>
         z =>
           f =>
@@ -99,5 +99,46 @@ object Exercises {
           }
         }
     }
+
+    def map[A, B]: Stream[A] => (A => B) => Stream[B] =
+      as =>
+        f => {
+          def mapf(a: A, b: => Stream[B]): Stream[B] = cons(f(a))(b)
+          foldRight(as)(Empty: Stream[B])(mapf)
+      }
+
+    def filter[A]: Stream[A] => (A => Boolean) => Stream[A] =
+      as =>
+        f => {
+          def filterf(a: A, b: => Stream[A]): Stream[A] =
+            if (f(a))
+              cons(a)(b)
+            else
+              b
+
+          foldRight(as)(Empty: Stream[A])(filterf)
+      }
+
+    def append[A]: Stream[A] => Stream[A] => Stream[A] =
+      as =>
+        n => {
+          def appendf(a: A, b: => Stream[A]): Stream[A] =
+            b match {
+              case Empty  => cons(a)(n)
+              case cs @ _ => cons(a)(cs)
+            }
+
+          as match {
+            case Empty => n
+            case _     => foldRight(as)(Empty: Stream[A])(appendf)
+          }
+      }
+
+    def flatMap[A, B]: Stream[A] => (A => Stream[B]) => Stream[B] =
+      as =>
+        f => {
+          def mapf(a: A, b: => Stream[B]): Stream[B] = append(f(a))(b)
+          foldRight(as)(Empty: Stream[B])(mapf)
+      }
   }
 }
