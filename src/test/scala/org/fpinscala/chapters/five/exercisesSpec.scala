@@ -210,4 +210,16 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     toList(flatMap(as)(a => Stream(a + 1))) should contain allElementsOf (toList(Stream(3, 4, 5, 6)))
   }
+
+  behavior of "exercise 5.11"
+
+  it should "return the empty stream when state function terminates on start" in {
+    unfold(1)(_ => None) shouldBe Empty
+  }
+
+  it should "return a stream on n elements when state functions runs n times" in {
+    val as = unfold(1)(s => if (s != 3) Some((s, s + 1)) else None)
+
+    toList(as) should contain allElementsOf (toList(Stream(1, 2)))
+  }
 }

@@ -160,5 +160,12 @@ object Exercises {
     }
     // $COVERAGE-ON$
 
+    def unfold[A, S]: S => (S => Option[(A, S)]) => Stream[A] =
+      s =>
+        f =>
+          f(s) match {
+            case None         => Empty
+            case Some((a, s)) => append(Stream(a))(unfold(s)(f))
+          }
   }
 }
