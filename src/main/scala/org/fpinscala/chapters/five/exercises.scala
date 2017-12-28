@@ -166,6 +166,22 @@ object Exercises {
           f(s) match {
             case None         => Empty
             case Some((a, s)) => append(Stream(a))(unfold(s)(f))
-          }
+      }
+
+    // $COVERAGE-OFF$
+    object InfiniteWithUnfold {
+      def ones: Stream[Int] =
+        constant(1)
+
+      def constant[A]: A => Stream[A] =
+        a => unfold(a)(s => Some((s, s)))
+
+      def from: Int => Stream[Int] =
+        n => unfold(n)(s => Some((s, s + 1)))
+
+      def fibs: Stream[BigInt] =
+        unfold((BigInt(0), BigInt(1))) { case (a, b) => Some((b, (b, a + b))) }
+    }
+    // $COVERAGE-ON$
   }
 }
