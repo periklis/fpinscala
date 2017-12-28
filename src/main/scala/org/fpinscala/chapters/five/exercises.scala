@@ -265,5 +265,17 @@ object Exercises {
 
     def hasSubsequence[A]: Stream[A] => Stream[A] => Boolean =
       as => ns => exists(tails(as))((ss: Stream[A]) => startsWith(ns)(ss))
+
+    def scanRight[A, B]: Stream[A] => B => ((A, => B) => B) => Stream[Stream[B]] =
+      as =>
+        z =>
+          f =>
+            unfold(as) {
+              _ match {
+                case Empty                      => None
+                case Cons(h, t) if t() == Empty => Some((Stream(f(h(), z), z), t()))
+                case s @ _                      => Some((Stream(foldRight(s)(z)(f)), drop(s)(1)))
+              }
+      }
   }
 }

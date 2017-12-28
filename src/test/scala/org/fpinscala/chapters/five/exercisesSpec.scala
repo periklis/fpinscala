@@ -434,4 +434,18 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
 
     forAll(Seq(ns1, ns2, ns3))((ns) => hasSubsequence(as)(ns) shouldBe true)
   }
+
+  behavior of "exercise 5.16"
+
+  it should "return the empty stream when the emptry stream given" in {
+    scanRight(Empty: Stream[Int])(0)(_ + _) shouldBe Empty
+  }
+
+  it should "return a stream with substream of intermediate results when non emptry stream given" in {
+    val as       = Stream(1, 2, 3)
+    val actual   = scanRight(as)(0)(_ + _)
+    val expected = Stream(Stream(6), Stream(5), Stream(3), Stream(0), Stream())
+
+    toListDeep(actual) should contain allElementsOf (toListDeep(expected))
+  }
 }
