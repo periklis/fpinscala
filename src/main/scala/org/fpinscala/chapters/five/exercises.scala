@@ -183,5 +183,55 @@ object Exercises {
         unfold((BigInt(0), BigInt(1))) { case (a, b) => Some((b, (b, a + b))) }
     }
     // $COVERAGE-ON$
+
+    object WithUnfold {
+      def take[A]: Stream[A] => Int => Stream[A] =
+        as =>
+          n =>
+            unfold((as, n)) {
+              case (as, n) =>
+                as match {
+                  case Cons(h, t) if n != 0 => Some((h(), (t(), n - 1)))
+                  case s @ _                => None
+                }
+        }
+
+      def takeWhile[A]: Stream[A] => (A => Boolean) => Stream[A] =
+        as =>
+          f =>
+            unfold(as) {
+              _ match {
+                case Cons(h, t) if f(h()) => Some((h(), t()))
+                case s @ _                => None
+              }
+        }
+
+      def zipWith[A]: Stream[A] => Stream[A] => ((A, A) => A) => Stream[A] =
+        as =>
+          bs =>
+            f =>
+              unfold((as, bs)) {
+                case (a, b) =>
+                  (a, b) match {
+                    case (Empty, Empty)               => None
+                    case (Cons(h1, t1), Empty)        => Some((h1(), (t1(), Empty)))
+                    case (Empty, Cons(h2, t2))        => Some((h2(), (Empty, t2())))
+                    case (Cons(h1, t1), Cons(h2, t2)) => Some((f(h1(), h2()), (t1(), t2())))
+                  }
+        }
+
+      def zipAll[A, B]: Stream[A] => Stream[B] => Stream[(Option[A], Option[B])] =
+        as =>
+          bs =>
+            unfold((as, bs)) {
+              case (a, b) =>
+                (a, b) match {
+                  case (Empty, Empty)               => None
+                  case (Cons(h, t), Empty)          => Some(((Some(h()), None), (t(), Empty)))
+                  case (Empty, Cons(h, t))          => Some(((None, Some(h())), (Empty, t())))
+                  case (Cons(h1, t1), Cons(h2, t2)) => Some(((Some(h1()), Some(h2())), (t1(), t2())))
+                }
+        }
+    }
   }
 }
