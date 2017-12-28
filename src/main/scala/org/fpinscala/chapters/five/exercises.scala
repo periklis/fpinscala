@@ -79,6 +79,11 @@ object Exercises {
           as match {
             case Empty => false
             case _     => foldRight(as)(true)((a, b) => f(a) && b)
-          }
+      }
+
+    object WithFoldRight {
+      def takeWhile[A]: Stream[A] => (A => Boolean) => Stream[A] =
+        as => f => foldRight(as)(Stream[A]())((a, b) => if (f(a)) Cons(() => a, () => b) else Empty)
+    }
   }
 }

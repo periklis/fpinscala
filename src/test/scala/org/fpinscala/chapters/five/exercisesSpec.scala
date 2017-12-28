@@ -124,4 +124,22 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     forAll(as)(f) shouldBe true
   }
+
+  behavior of "exercise 5.5"
+
+  it should "return the empty stream when predicate fails on first element using foldRight" in {
+    val as = Stream(2, 3, 4, 5, 6)
+    WithFoldRight.takeWhile(as)(_ => false) shouldBe Empty
+  }
+
+  it should "return the empty stream when taking by predicate from empty stream using foldRight" in {
+    WithFoldRight.takeWhile(Empty)(_ => true) shouldBe Empty
+  }
+
+  it should "return a new stream with first elements that pass the predicate when non-empty stream given using foldRight" in {
+    val as         = Stream(2, 4, 6, 3, 5, 7)
+    val evenNumber = (a: Int) => BigInt(a).mod(2) == 0
+
+    toList(WithFoldRight.takeWhile(as)(evenNumber)) should contain allElementsOf (toList(Stream(2, 4, 6)))
+  }
 }
