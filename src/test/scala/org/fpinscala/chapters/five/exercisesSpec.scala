@@ -80,4 +80,48 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     toList(dropWhile(as)(evenNumber)) should contain allElementsOf (toList(Stream(3, 5, 7)))
   }
+
+  behavior of "exercise 5.4"
+
+  it should "return false when empty stream given" in {
+    exists(Empty)(_ == 1) shouldBe false
+  }
+
+  it should "return false when element not part of stream" in {
+    val as = Stream(2, 3, 4, 5)
+    exists(as)(_ == 7) shouldBe false
+  }
+
+  it should "return true when element part of stream" in {
+    val as = Stream(2, 3, 4, 5)
+    exists(as)(_ == 3) shouldBe true
+  }
+
+  it should "return initial accumulator value when folding right the empty stream" in {
+    foldRight(Empty)(0)((_, _) => 2) shouldBe 0
+  }
+
+  it should "retutn the acculumated value when folding right the empty stream" in {
+    val as = Stream(2, 3, 4, 5)
+
+    foldRight(as)(0)((a, b) => a + b) shouldBe 14
+  }
+
+  it should "return false when applying predicate for all elements of the empty stream" in {
+    forAll(Empty)(_ == 1) shouldBe false
+  }
+
+  it should "return false when predicate fails for at least one element of the stream" in {
+    val as = Stream(2, 3, 4, 6)
+    val f  = (a: Int) => BigInt(a).mod(2) == 0
+
+    forAll(as)(f) shouldBe false
+  }
+
+  it should "return true when predicate passes for all elements of the stream" in {
+    val as = Stream(2, 4, 6, 8)
+    val f  = (a: Int) => BigInt(a).mod(2) == 0
+
+    forAll(as)(f) shouldBe true
+  }
 }

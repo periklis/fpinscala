@@ -60,5 +60,25 @@ object Exercises {
             case Cons(h, t) if f(h()) => dropWhile[A](t())(f)
             case _                    => as
       }
+
+    def foldRight[A, B]: Stream[A] => B => ((A, => B) => B) => B =
+      as =>
+        z =>
+          f =>
+            as match {
+              case Cons(h, t) => f(h(), foldRight(t())(z)(f))
+              case _          => z
+      }
+
+    def exists[A]: Stream[A] => (A => Boolean) => Boolean =
+      as => f => foldRight(as)(false)((a, b) => f(a) || b)
+
+    def forAll[A]: Stream[A] => (A => Boolean) => Boolean =
+      as =>
+        f =>
+          as match {
+            case Empty => false
+            case _     => foldRight(as)(true)((a, b) => f(a) && b)
+          }
   }
 }
