@@ -108,7 +108,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   }
 
   it should "return false when applying predicate for all elements of the empty stream" in {
-    Stream.forAll(Empty)(_ == 1) shouldBe false
+    Stream.forAll(Empty)(_ == 1) shouldBe true
   }
 
   it should "return false when predicate fails for at least one element of the stream" in {

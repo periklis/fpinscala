@@ -90,16 +90,11 @@ object Exercises {
       as => f => foldRight(as)(false)((a, b) => f(a) || b)
 
     def forAll[A]: Stream[A] => (A => Boolean) => Boolean =
-      as =>
-        f =>
-          as match {
-            case Empty => false
-            case _     => foldRight(as)(true)((a, b) => f(a) && b)
-      }
+      as => f => foldRight(as)(true)((a, b) => f(a) && b)
 
     object WithFoldRight {
       def takeWhile[A]: Stream[A] => (A => Boolean) => Stream[A] =
-        as => f => foldRight(as)(Stream[A]())((a, b) => if (f(a)) Cons(() => a, () => b) else Empty)
+        as => f => foldRight(as)(Stream[A]())((a, b) => if (f(a)) cons(a)(b) else empty)
 
       def headOption[A]: Stream[A] => Option[A] =
         foldRight(_)(None: Option[A]) { (a, b) =>
@@ -121,27 +116,21 @@ object Exercises {
       as =>
         f => {
           def filterf(a: A, b: => Stream[A]): Stream[A] =
-            if (f(a))
-              cons(a)(b)
-            else
-              b
+            if (f(a)) cons(a)(b) else b
 
           foldRight(as)(Empty: Stream[A])(filterf)
       }
 
     def append[A]: Stream[A] => Stream[A] => Stream[A] =
       as =>
-        n => {
+        bs => {
           def appendf(a: A, b: => Stream[A]): Stream[A] =
             b match {
-              case Empty  => cons(a)(n)
+              case Empty  => cons(a)(bs)
               case cs @ _ => cons(a)(cs)
             }
 
-          as match {
-            case Empty => n
-            case _     => foldRight(as)(Empty: Stream[A])(appendf)
-          }
+          foldRight(as)(bs)(appendf)
       }
 
     def flatMap[A, B]: Stream[A] => (A => Stream[B]) => Stream[B] =
@@ -175,7 +164,7 @@ object Exercises {
         f =>
           f(s) match {
             case None         => Empty
-            case Some((a, s)) => append(Stream(a))(unfold(s)(f))
+            case Some((a, s)) => cons(a)(unfold(s)(f))
       }
 
     // $COVERAGE-OFF$
@@ -202,7 +191,7 @@ object Exercises {
               case (as, n) =>
                 as match {
                   case Cons(h, t) if n != 0 => Some((h(), (t(), n - 1)))
-                  case s @ _                => None
+                  case _                    => None
                 }
         }
 
@@ -212,7 +201,7 @@ object Exercises {
             unfold(as) {
               _ match {
                 case Cons(h, t) if f(h()) => Some((h(), t()))
-                case s @ _                => None
+                case _                    => None
               }
         }
 
