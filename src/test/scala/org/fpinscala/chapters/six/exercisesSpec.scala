@@ -88,4 +88,31 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     RNG.WithFlatMap.map2(g)(g)(_ + _ + 2)(SimpleRNG(0))._1 shouldBe 2
   }
+
+  behavior of "exercise 6.10"
+
+  it should "return the unit of a new state transition for constant A" in {
+    State.unit(2).run(SimpleRNG(0))._1 shouldBe 2
+  }
+
+  it should "return the mapped random int when f applied" in {
+    State.map(RNG2.nonNegativeNextInt)(_ + 1).run(SimpleRNG(0))._1 shouldBe 1
+  }
+
+  it should "return the combination of both random ints when f applied" in {
+    val g = RNG2.nonNegativeNextInt
+
+    State.map2(g)(g)(_ + _ + 1).run(SimpleRNG(0))._1 shouldBe 1
+  }
+
+  it should "return a state with the empty list when the empty list given" in {
+    State.sequence(Nil).run(SimpleRNG(0))._1 shouldBe Nil
+  }
+
+  it should "return a state with the list of generated numbers when non-empty-list given" in {
+    val g  = RNG2.nonNegativeNextInt
+    val fs = g :: g :: Nil
+
+    State.sequence(fs).run(SimpleRNG(0))._1 shouldBe 0 :: 0 :: Nil
+  }
 }

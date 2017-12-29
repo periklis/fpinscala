@@ -122,4 +122,44 @@ object Exercises {
         map(nonNegativeNextInt(_))(a => a / (Int.MaxValue.toDouble + 1))
     }
   }
+
+  case class State[S, +A](run: S => (A, S))
+
+  object State {
+    def unit[S, A]: A => State[S, A] =
+      a => State(s => (a, s))
+
+    def flatMap[S, A, B]: State[S, A] => (A => State[S, B]) => State[S, B] =
+      s =>
+        f =>
+          State(s1 => {
+            val (v, s2) = s.run(s1)
+            f(v).run(s2)
+          })
+
+    def map[S, A, B]: State[S, A] => (A => B) => State[S, B] =
+      s => f => flatMap(s)(a => unit(f(a)))
+
+    def map2[S, A, B, C]: State[S, A] => State[S, B] => ((A, B) => C) => State[S, C] =
+      s1 => s2 => f => flatMap(s1)(a => map(s2)(b => f(a, b)))
+
+    def sequence[S, A]: List[State[S, A]] => State[S, List[A]] =
+      fs =>
+        State(s => {
+          fs match {
+            case Nil => (Nil, s)
+            case x :: xs => {
+              val (v, s1) = x.run(s)
+              map(sequence(xs))(v :: _).run(s1)
+            }
+          }
+        })
+  }
+
+  type RNG2[A] = State[RNG, A]
+
+  object RNG2 {
+    def nonNegativeNextInt: RNG2[Int] =
+      State(RNG.nonNegativeNextInt)
+  }
 }
