@@ -50,4 +50,12 @@ class ExercisesSpec extends FlatSpec with Matchers {
   it should "return a double in range [0, 1)" in {
     RNG.WithRand.double(SimpleRNG(0))._1 should (be >= 0.0 and be < 1.0)
   }
+
+  behavior of "exercise 6.6"
+
+  it should "return the combination of two random generators" in {
+    val r = RNG.map2(RNG.nonNegativeNextInt)(RNG.WithRand.double)((_, _))
+
+    r(SimpleRNG(0))._1 shouldBe a[(Int, Double)]
+  }
 }
