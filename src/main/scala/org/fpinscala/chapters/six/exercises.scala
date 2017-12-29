@@ -16,16 +16,41 @@ object Exercises {
   }
 
   object RNG {
-    def nonNegativeNextInt: RNG => (Int, RNG) =
-      g => {
-        def genRandom(g: RNG): (Int, RNG) = {
-          g.nextInt match {
-            case r @ (v, _) if (v >= 0 && v <= Int.MaxValue) => r
-            case (_, r)                                      => genRandom(r)
-          }
-        }
+    def nonNegativeNextInt: RNG => (Int, RNG) = rng(_, a => a >= 0 && a <= Int.MaxValue, _.toInt)
+    def double: RNG => (Double, RNG)          = rng(_, a => a >= 0 && a < 1, _.toDouble)
 
-        genRandom(g)
+    def intDouble: RNG => ((Int, Double), RNG) = g => {
+      val r1 = g.nextInt
+      val r2 = double(r1._2)
+      ((r1._1, r2._1), r2._2)
+    }
+
+    def doubleInt: RNG => ((Double, Int), RNG) =
+      g => {
+        val r = intDouble(g)
+        (r._1.swap, r._2)
       }
+
+    def double3: RNG => ((Double, Double, Double), RNG) =
+      g => {
+        val d1 = double(g)
+        val d2 = double(d1._2)
+        val d3 = double(d2._2)
+        ((d1._1, d2._1, d3._1), d3._2)
+      }
+
+    def ints: Int => RNG => (List[Int], RNG) =
+      n =>
+        g => {
+          val r = nonNegativeNextInt(g)
+          if (n > 0) (r._1 :: ints(n - 1)(r._2)._1, r._2) else (Nil, g)
+      }
+
+    private def rng[A](g: RNG, f: Int => Boolean, c: Int => A): (A, RNG) = {
+      g.nextInt match {
+        case (v, r) if f(v) => (c(v), r)
+        case (_, r)         => rng(r, f, c)
+      }
+    }
   }
 }
