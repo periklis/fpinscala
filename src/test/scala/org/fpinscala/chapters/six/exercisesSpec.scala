@@ -44,4 +44,10 @@ class ExercisesSpec extends FlatSpec with Matchers {
   it should "return a list with n random ints when count n given" in {
     RNG.ints(2)(SimpleRNG(0))._1 should have length 2
   }
+
+  behavior of "exercise 6.5"
+
+  it should "return a double in range [0, 1)" in {
+    RNG.WithRand.double(SimpleRNG(0))._1 should (be >= 0.0 and be < 1.0)
+  }
 }

@@ -52,5 +52,20 @@ object Exercises {
         case (_, r)         => rng(r, f, c)
       }
     }
+
+    type Rand[+A] = RNG => (A, RNG)
+
+    object WithRand {
+      def map[A, B]: Rand[A] => (A => B) => Rand[B] =
+        r =>
+          f =>
+            g => {
+              val (v, rng2) = r(g)
+              (f(v), rng2)
+        }
+
+      val double: Rand[Double] =
+        map(nonNegativeNextInt(_))(a => a / (Int.MaxValue.toDouble + 1))
+    }
   }
 }
