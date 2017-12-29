@@ -115,4 +115,36 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     State.sequence(fs).run(SimpleRNG(0))._1 shouldBe 0 :: 0 :: Nil
   }
+
+  behavior of "exercise 6.11"
+
+  it should "return the initial state of the machine when the empty list of inputs given" in {
+    State.toA(Machine(false, 10, 5))(simulateMachine(Nil)) shouldBe Tuple2(10, 5)
+  }
+
+  it should "accept a new coin when machine is locked" in {
+    State.toA(Machine(true, 10, 5))(simulateMachine(List(Coin))) shouldBe Tuple2(11, 5)
+  }
+
+  it should "reject a new coin when machine is unlocked" in {
+    State.toA(Machine(false, 10, 5))(simulateMachine(List(Coin))) shouldBe Tuple2(10, 5)
+  }
+
+  it should "reject a new coin when machine is locked and no candies left" in {
+    State.toA(Machine(true, 10, 0))(simulateMachine(List(Coin))) shouldBe Tuple2(10, 0)
+  }
+
+  it should "return a candy when machine is unlocked" in {
+    State.toA(Machine(false, 11, 5))(simulateMachine(List(Turn))) shouldBe Tuple2(11, 4)
+  }
+
+  it should "return no candy when machine is locked" in {
+    State.toA(Machine(true, 11, 5))(simulateMachine(List(Turn))) shouldBe Tuple2(11, 5)
+  }
+
+  it should "return the last state when a list of inputs given" in {
+    val inputs = Coin :: Turn :: Coin :: Turn :: Coin :: Turn :: Coin :: Turn :: Nil
+
+    State.toA(Machine(true, 10, 5))(simulateMachine(inputs)) shouldBe Tuple2(14, 1)
+  }
 }

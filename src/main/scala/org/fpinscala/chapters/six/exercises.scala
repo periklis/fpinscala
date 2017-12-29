@@ -154,6 +154,18 @@ object Exercises {
             }
           }
         })
+
+    // $COVERAGE-OFF$
+    def get[S]: State[S, S] = State(s => (s, s))
+
+    def set[S]: S => State[S, Unit] = s => State(_ => ((), s))
+
+    def modify[S]: (S => S) => State[S, Unit] =
+      f => flatMap(get[S])(s => set(f(s)))
+    // $COVERAGE-ON$
+
+    def toA[S, A]: S => State[S, A] => A =
+      s => st => st.run(s)._1
   }
 
   type RNG2[A] = State[RNG, A]
@@ -162,4 +174,39 @@ object Exercises {
     def nonNegativeNextInt: RNG2[Int] =
       State(RNG.nonNegativeNextInt)
   }
+
+  sealed trait Input
+  case object Coin extends Input
+  case object Turn extends Input
+  case class Machine(locked: Boolean, coins: Int, candies: Int)
+
+  def simulateMachine: List[Input] => State[Machine, (Int, Int)] =
+    _ match {
+      case Nil             => State(s => ((s.coins, s.candies), s))
+      case input :: inputs => State.flatMap(nextState(input))(_ => simulateMachine(inputs))
+    }
+
+  private def nextState: Input => State[Machine, (Int, Int)] =
+    _ match {
+      case Coin => insertCoin
+      case Turn => turnKnob
+    }
+
+  private def insertCoin: State[Machine, (Int, Int)] =
+    State(
+      m =>
+        if (m.locked && m.candies > 0)
+          ((m.coins + 1, m.candies), m.copy(locked = false, coins = m.coins + 1))
+        else
+          ((m.coins, m.candies), m)
+    )
+
+  private def turnKnob: State[Machine, (Int, Int)] =
+    State(
+      m =>
+        if (!m.locked)
+          ((m.coins, m.candies - 1), m.copy(locked = true, candies = m.candies - 1))
+        else
+          ((m.coins, m.candies), m)
+    )
 }
