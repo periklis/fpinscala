@@ -109,6 +109,14 @@ object Exercises {
             nonNegativeLessThan(n)
         })(_)
 
+    object WithFlatMap {
+      def map[A, B]: Rand[A] => (A => B) => Rand[B] =
+        g => f => flatMap(g)(a => unit(f(a)))(_)
+
+      def map2[A, B, C]: Rand[A] => Rand[B] => ((A, B) => C) => Rand[C] =
+        g => h => f => flatMap(g)(a => map(h)(b => f(a, b)))(_)
+    }
+
     object WithRand {
       val double: Rand[Double] =
         map(nonNegativeNextInt(_))(a => a / (Int.MaxValue.toDouble + 1))

@@ -76,4 +76,16 @@ class ExercisesSpec extends FlatSpec with Matchers {
   it should "return a random not less than n" in {
     RNG.nonNegativeLessThan(2)(SimpleRNG(42))._1 shouldBe 1
   }
+
+  behavior of "exercise 6.9"
+
+  it should "return the mapped random int when f applied" in {
+    RNG.WithFlatMap.map(RNG.nonNegativeNextInt)(_ + 1)(SimpleRNG(0))._1 shouldBe 1
+  }
+
+  it should "return the combination of both random ints when f applied" in {
+    val g = RNG.nonNegativeNextInt
+
+    RNG.WithFlatMap.map2(g)(g)(_ + _ + 2)(SimpleRNG(0))._1 shouldBe 2
+  }
 }
