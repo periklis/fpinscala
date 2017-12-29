@@ -55,6 +55,9 @@ object Exercises {
 
     type Rand[+A] = RNG => (A, RNG)
 
+    def unit[A]: A => Rand[A] =
+      a => rng => (a, rng)
+
     def map[A, B]: Rand[A] => (A => B) => Rand[B] =
       r =>
         f =>
@@ -84,6 +87,27 @@ object Exercises {
             }
           }
       }
+
+    def flatMap[A, B]: Rand[A] => (A => Rand[B]) => Rand[B] =
+      g =>
+        f =>
+          rng => {
+            val (v, rng2) = g(rng)
+            f(v)(rng2)
+      }
+
+    def nonNegativeNextIntViaRand: Rand[Int] =
+      nonNegativeNextInt(_)
+
+    def nonNegativeLessThan: Int => Rand[Int] =
+      n =>
+        flatMap(nonNegativeNextIntViaRand)(a => {
+          val mod = a % n
+          if (a + (n - 1) - mod > 0)
+            unit(mod)
+          else
+            nonNegativeLessThan(n)
+        })(_)
 
     object WithRand {
       val double: Rand[Double] =

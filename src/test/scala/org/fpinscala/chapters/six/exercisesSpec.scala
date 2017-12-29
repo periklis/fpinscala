@@ -66,4 +66,14 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     RNG.sequence(rngs)(SimpleRNG(0))._1 should have length 3
   }
+
+  behavior of "exercise 6.8"
+
+  it should "return a random not less than 16159454" in {
+    RNG.nonNegativeLessThan(16159454)(SimpleRNG(42))._1 shouldBe 16159453
+  }
+
+  it should "return a random not less than n" in {
+    RNG.nonNegativeLessThan(2)(SimpleRNG(42))._1 shouldBe 1
+  }
 }
