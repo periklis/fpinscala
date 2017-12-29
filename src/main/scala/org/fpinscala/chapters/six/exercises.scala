@@ -73,6 +73,18 @@ object Exercises {
               (f(v1, v2), rng3)
       }
 
+    def sequence[A]: List[Rand[A]] => Rand[List[A]] =
+      fs =>
+        rng => {
+          fs match {
+            case Nil => (Nil, rng)
+            case x :: xs => {
+              val (v, s) = x(rng)
+              map(sequence(xs))(v :: _)(s)
+            }
+          }
+      }
+
     object WithRand {
       val double: Rand[Double] =
         map(nonNegativeNextInt(_))(a => a / (Int.MaxValue.toDouble + 1))

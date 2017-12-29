@@ -58,4 +58,12 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     r(SimpleRNG(0))._1 shouldBe a[(Int, Double)]
   }
+
+  behavior of "exercise 6.7"
+
+  it should "return a list with n random ints when count n given" in {
+    val rngs = List.fill(3)(RNG.nonNegativeNextInt)
+
+    RNG.sequence(rngs)(SimpleRNG(0))._1 should have length 3
+  }
 }
