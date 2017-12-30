@@ -75,6 +75,20 @@ object Exercises {
     def map2[A, B, C]: Par3[A] => Par3[B] => ((A, B) => C) => Par3[C] =
       pa => pb => f => flatMap(pa)(a => map(pb)(b => f(a, b)))
 
+    def map3[A, B, C, D]: Par3[A] => Par3[B] => Par3[C] => ((A, B, C) => D) => Par3[D] =
+      pa => pb => pc => f => map2(map2(pa)(pb)((f.curried)(_)(_)))(pc)((g, c) => g(c))
+
+    def map4[A, B, C, D, E]: Par3[A] => Par3[B] => Par3[C] => Par3[D] => ((A, B, C, D) => E) => Par3[E] =
+      pa =>
+        pb =>
+          pc =>
+            pd =>
+              f => {
+                val ab = map2(pa)(pb)((f.curried)(_)(_))
+                val c  = map2(ab)(pc)((g, c) => g(c))
+                map2(c)(pd)((h, d) => h(d))
+      }
+
     def asyncF[A, B]: (A => B) => A => Par3[B] =
       f => a => lazyUnit(f(a))
 
@@ -86,5 +100,13 @@ object Exercises {
 
     def parMap[A, B]: List[A] => (A => B) => Par3[List[B]] =
       as => f => fork(sequence(as.map(asyncF(f))))
+
+    def parFilter[A]: List[A] => (A => Boolean) => Par3[List[A]] =
+      as =>
+        f =>
+          fork {
+            val ps = as.map(asyncF((a: A) => List(a).filter(f)))
+            ps.foldRight(unit(Nil: List[A]))(map2(_)(_)(_ ::: _))
+      }
   }
 }

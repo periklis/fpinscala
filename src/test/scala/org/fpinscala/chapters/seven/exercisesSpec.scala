@@ -68,4 +68,28 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     Await.result(Par3.run(ec)(p), d) shouldBe 3 :: 4 :: Nil
   }
+
+  behavior of "exercise 7.6"
+
+  it should "return the list with elements passing the predicate using parallel computations" in {
+    val as = 1 :: 2 :: 3 :: 4 :: 5 :: 6 :: 7 :: 8 :: 9 :: 10 :: Nil
+    val f  = (a: Int) => a % 2 == 0
+    val p  = Par3.parFilter(as)(f)
+
+    Await.result(Par3.run(ec)(p), d) shouldBe 2 :: 4 :: 6 :: 8 :: 10 :: Nil
+  }
+
+  it should "return f-mapped result of the three parallel computations" in {
+    val p = Par3.map3(Par3.unit(2))(Par3.unit(3))(Par3.unit(4))(_ + _ + _)
+    val e = Par3.lazyUnit(9)
+
+    Await.result(Par3.run(ec)(p), d) shouldBe Await.result(Par3.run(ec)(e), d)
+  }
+
+  it should "return f-mapped result of the four parallel computations" in {
+    val p = Par3.map4(Par3.unit(2))(Par3.unit(3))(Par3.unit(4))(Par3.unit(1))(_ + _ + _ + _)
+    val e = Par3.lazyUnit(10)
+
+    Await.result(Par3.run(ec)(p), d) shouldBe Await.result(Par3.run(ec)(e), d)
+  }
 }
