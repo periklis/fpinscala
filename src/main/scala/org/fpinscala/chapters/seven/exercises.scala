@@ -74,6 +74,17 @@ object Exercises {
 
     def map2[A, B, C]: Par3[A] => Par3[B] => ((A, B) => C) => Par3[C] =
       pa => pb => f => flatMap(pa)(a => map(pb)(b => f(a, b)))
-  }
 
+    def asyncF[A, B]: (A => B) => A => Par3[B] =
+      f => a => lazyUnit(f(a))
+
+    def sequence[A]: List[Par3[A]] => Par3[List[A]] =
+      _ match {
+        case Nil       => unit(Nil)
+        case p :: pars => flatMap(sequence(pars))(as => map(p)(_ :: as))
+      }
+
+    def parMap[A, B]: List[A] => (A => B) => Par3[List[B]] =
+      as => f => fork(sequence(as.map(asyncF(f))))
+  }
 }
