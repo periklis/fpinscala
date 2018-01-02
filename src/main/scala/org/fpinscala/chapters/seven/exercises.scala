@@ -109,4 +109,17 @@ object Exercises {
             ps.foldRight(unit(Nil: List[A]))(map2(_)(_)(_ ::: _))
       }
   }
+
+  /* Exercise 7.7
+
+     map(map(y)(g))(f) == map(y)(f compose g)
+
+     because the laws
+     - map(x)(id) == x
+     - (f compose id)(x) == f(id(x)) == f(x)
+     hold, assuming g = id the above becomes:
+
+     map(map(y)(id))(f) == map(y)(f compose id)
+     map(y)(f) == map(y)(f)
+   */
 }
