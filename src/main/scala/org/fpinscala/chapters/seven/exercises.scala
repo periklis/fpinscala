@@ -58,7 +58,8 @@ object Exercises {
     def unit[A]: A => Par3[A] =
       a => Future(a)(_)
 
-    def fork[A](p: => Par3[A]): Par3[A] = p
+    def fork[A](p: => Par3[A]): Par3[A] =
+      ec => p(ec)
 
     def lazyUnit[A]: A => Par3[A] =
       a => fork(unit(a))
@@ -121,5 +122,16 @@ object Exercises {
 
      map(map(y)(id))(f) == map(y)(f compose id)
      map(y)(f) == map(y)(f)
+   */
+
+  /* Exercise 7.8 & 7.9
+
+     According to the implementation in the book, that uses
+     java.util.concurrent.Executors, in listing 7.5, the
+     call on Future.get inside callable is blocking the outer
+     Callable from proceeding further. Thus, in the case of a
+     FixedThreadPool of size 1 or SingleThreadExecutor the
+     execution of Callable will die of starvation.
+
    */
 }
