@@ -120,4 +120,13 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     Await.result(Par3.run(ec)(c), d) shouldBe Await.result(Par3.run(ec)(pb), d)
   }
+
+  behavior of "exercise 7.14"
+
+  it should "return the result of the inner computation when nested parallel computation given " in {
+    val p                   = Par3.unit(2)
+    val pp: Par3[Par3[Int]] = Future(p)(_)
+
+    Await.result(Par3.run(ec)(Par3.join(pp)), d) shouldBe Await.result(Par3.run(ec)(p), d)
+  }
 }

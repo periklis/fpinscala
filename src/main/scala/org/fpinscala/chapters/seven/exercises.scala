@@ -115,6 +115,9 @@ object Exercises {
 
     def choice[A]: Par3[Boolean] => Par3[A] => Par3[A] => Par3[A] =
       c => pa => pb => choiceN(map(c)(r => if (!r) 0 else 1))(pa :: pb :: Nil)
+
+    def join[A]: Par3[Par3[A]] => Par3[A] =
+      p => ec => p(ec).flatMap(v => v(ec))(ec)
   }
 
   /* Exercise 7.7
