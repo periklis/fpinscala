@@ -109,6 +109,12 @@ object Exercises {
             val ps = as.map(asyncF((a: A) => List(a).filter(f)))
             ps.foldRight(unit(Nil: List[A]))(map2(_)(_)(_ ::: _))
       }
+
+    def choiceN[A]: Par3[Int] => List[Par3[A]] => Par3[A] =
+      pn => ps => flatMap(pn)(n => ps(n))
+
+    def choice[A]: Par3[Boolean] => Par3[A] => Par3[A] => Par3[A] =
+      c => pa => pb => choiceN(map(c)(r => if (!r) 0 else 1))(pa :: pb :: Nil)
   }
 
   /* Exercise 7.7
@@ -133,5 +139,5 @@ object Exercises {
      FixedThreadPool of size 1 or SingleThreadExecutor the
      execution of Callable will die of starvation.
 
-   */
+ */
 }

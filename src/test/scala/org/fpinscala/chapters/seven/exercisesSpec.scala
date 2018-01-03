@@ -92,4 +92,32 @@ class ExercisesSpec extends FlatSpec with Matchers {
 
     Await.result(Par3.run(ec)(p), d) shouldBe Await.result(Par3.run(ec)(e), d)
   }
+
+  behavior of "exercise 7.11"
+
+  it should "return the n-th parallel computation when Par of n given" in {
+    val pn = Par3.unit(2)
+    val ps = Par3.unit(1) :: Par3.unit(2) :: Par3.unit(3) :: Par3.unit(4) :: Nil
+    val cN = Par3.choiceN(pn)(ps)
+
+    Await.result(Par3.run(ec)(cN), d) shouldBe Await.result(Par3.run(ec)(Par3.unit(3)), d)
+  }
+
+  it should "return the first computation when Par cond evaluates to false" in {
+    val cond = Par3.unit(false)
+    val pa   = Par3.unit(1)
+    val pb   = Par3.unit(2)
+    val c    = Par3.choice(cond)(pa)(pb)
+
+    Await.result(Par3.run(ec)(c), d) shouldBe Await.result(Par3.run(ec)(pa), d)
+  }
+
+  it should "return the second computation when Par cond evaluates to false" in {
+    val cond = Par3.unit(true)
+    val pa   = Par3.unit(1)
+    val pb   = Par3.unit(2)
+    val c    = Par3.choice(cond)(pa)(pb)
+
+    Await.result(Par3.run(ec)(c), d) shouldBe Await.result(Par3.run(ec)(pb), d)
+  }
 }
