@@ -1,5 +1,7 @@
 package org.fpinscala.chapters.eight
 
+import org.fpinscala.chapters.six.Exercises.{State, RNG}
+
 object Exercises {
 
   def sum(as: List[Int]): Int =
@@ -7,8 +9,6 @@ object Exercises {
 
   def max(as: List[Int]): Int =
     as.max
-
-  trait Gen[T]
 
   trait SimpleProp {
     var res: Boolean
@@ -28,12 +28,30 @@ object Exercises {
     def &&(o: Prop): Prop = ???
   }
 
+  case class Gen[T](sample: State[RNG, T])
+
   object Gen {
-    def choose(start: Int, stopExclusive: Int): Gen[Int] = ???
+    def choose(start: Int, stopExclusive: Int): Gen[Int] =
+      Gen(State(r => {
+        RNG.nonNegativeLessThan(stopExclusive)(r) match {
+          case s @ (a, _) if a > start => s
+          case _                       => (start, r)
+        }
+      }))
 
-    def listOf[A](a: Gen[A]): Gen[List[A]] = ???
+    def unit[A](a: A): Gen[A] =
+      Gen(State((a, _)))
 
-    def listOfN[A](n: Int, a: Gen[A]): Gen[List[A]] = ???
+    def boolean[A]: Gen[Boolean] =
+      Gen(State(s => {
+        RNG.nonNegativeLessThan(2)(s) match {
+          case (t, r) if t > 0 => (true, r)
+          case (_, r2)         => (false, r2)
+        }
+      }))
+
+    def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
+      Gen(State.sequence(List.fill(n)(g.sample)))
   }
 
   object Prop {
