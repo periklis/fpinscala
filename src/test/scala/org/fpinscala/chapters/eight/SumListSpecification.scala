@@ -1,6 +1,6 @@
 package org.fpinscala.chapters.eight
 
-import org.fpinscala.chapters.eight.Exercises._
+import org.fpinscala.chapters.eight.Exercises.sum
 import org.scalacheck._
 import org.scalacheck.Prop._
 
