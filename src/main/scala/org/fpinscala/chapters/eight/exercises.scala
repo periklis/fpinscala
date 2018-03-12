@@ -46,12 +46,20 @@ object Exercises {
       Gen(State(s => {
         RNG.nonNegativeLessThan(2)(s) match {
           case (t, r) if t > 0 => (true, r)
-          case (t2, r2)        => (false, r2)
+          case (_, r2)         => (false, r2)
         }
       }))
 
     def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
       Gen(State.sequence(List.fill(n)(g.sample)))
+
+    def flatMap[A, B](g: Gen[A])(f: A => Gen[B]): Gen[B] =
+      Gen(State.flatMap(g.sample) { a =>
+        f(a).sample
+      })
+
+    def listOfN[A](g: Gen[A], size: Gen[Int]): Gen[List[A]] =
+      flatMap(size)(listOfN(_, g))
   }
 
   object Prop {

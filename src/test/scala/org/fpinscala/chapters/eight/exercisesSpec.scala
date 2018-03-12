@@ -51,4 +51,20 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
 
     forAll(gs.sample.run(SimpleRNG(123))._1) { _ should (be >= 1 and be < 300) }
   }
+
+  behavior of "exercise 8.6"
+
+  it should "return the combination of two different generators" in {
+    val g1 = Gen.choose(1, 300)
+    val f  = (n: Int) => Gen.choose(n, n * 2)
+
+    Gen.flatMap(g1)(f).sample.run(SimpleRNG(123))._1 should (be >= 14 and be < 28)
+  }
+
+  it should "return a list of generator based on a generated size" in {
+    val g1 = Gen.choose(1, 100)
+    val g2 = Gen.choose(1, 300)
+
+    forAll(Gen.listOfN(g1, g2).sample.run(SimpleRNG(123))._1) { _ should (be >= 1 and be < 100) }
+  }
 }
