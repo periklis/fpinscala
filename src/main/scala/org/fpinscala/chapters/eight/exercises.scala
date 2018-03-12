@@ -60,6 +60,9 @@ object Exercises {
 
     def listOfN[A](g: Gen[A], size: Gen[Int]): Gen[List[A]] =
       flatMap(size)(listOfN(_, g))
+
+    def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
+      flatMap(boolean)(if (_) g1 else g2)
   }
 
   object Prop {
