@@ -46,7 +46,7 @@ object Exercises {
       Gen(State(s => {
         RNG.nonNegativeLessThan(2)(s) match {
           case (t, r) if t > 0 => (true, r)
-          case (_, r2)         => (false, r2)
+          case (t2, r2)        => (false, r2)
         }
       }))
 

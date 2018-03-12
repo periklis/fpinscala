@@ -1,5 +1,7 @@
 package org.fpinscala.chapters.six
 
+import scala.annotation.tailrec
+
 object Exercises {
 
   trait RNG {
@@ -46,6 +48,7 @@ object Exercises {
           if (n > 0) (r._1 :: ints(n - 1)(r._2)._1, r._2) else (Nil, g)
       }
 
+    @tailrec
     private def rng[A](g: RNG, f: Int => Boolean, c: Int => A): (A, RNG) = {
       g.nextInt match {
         case (v, r) if f(v) => (c(v), r)
