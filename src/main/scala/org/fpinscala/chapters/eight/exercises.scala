@@ -63,6 +63,15 @@ object Exercises {
 
     def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
       flatMap(boolean)(if (_) g1 else g2)
+
+    def weighted[A](g1: (Gen[A], Double), g2: (Gen[A], Double)): Gen[A] =
+      flatMap(Gen.choose(1, 101)) { w =>
+        val wD = (w.toDouble / 100)
+        (g1, g2) match {
+          case ((l, w1), (_, _)) if wD <= w1 => l
+          case ((_, _), (r, w2)) if wD <= w2 => r
+        }
+      }
   }
 
   object Prop {

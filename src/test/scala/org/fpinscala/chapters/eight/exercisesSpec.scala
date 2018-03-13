@@ -77,4 +77,14 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     Gen.union(g1, g2).sample.run(SimpleRNG(123))._1 should (be >= 1 and be < 3)
     Gen.union(g1, g2).sample.run(SimpleRNG(99))._1 should (be >= 1 and be < 100)
   }
+
+  behavior of "exercise 8.8"
+
+  it should "return the generator according to its weight" in {
+    val g1 = Gen.choose(1, 100)
+    val g2 = Gen.choose(1, 3)
+
+    Gen.weighted((g1, 0.3), (g2, 0.7)).sample.run(SimpleRNG(123))._1 should (be >= 1 and be < 3)
+    Gen.weighted((g1, 0.3), (g2, 0.7)).sample.run(SimpleRNG(99))._1 should (be >= 1 and be < 100)
+  }
 }
