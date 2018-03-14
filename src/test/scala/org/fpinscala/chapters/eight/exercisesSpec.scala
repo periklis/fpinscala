@@ -87,4 +87,59 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     Gen.weighted((g1, 0.3), (g2, 0.7)).sample.run(SimpleRNG(123))._1 should (be >= 1 and be < 3)
     Gen.weighted((g1, 0.3), (g2, 0.7)).sample.run(SimpleRNG(99))._1 should (be >= 1 and be < 100)
   }
+
+  behavior of "exercise 8.9"
+
+  it should "check that all generated values pass the predicate" in {
+    Prop.forAll(Gen.choose(1, 3))(a => a >= 1 && a < 3).run(100, SimpleRNG(123)) shouldEqual (Passed)
+  }
+
+  it should "return the failed case and the sucess count when the predicate is not passed" in {
+    Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3).run(100, SimpleRNG(123)) shouldEqual (Failed(
+      "Failed: 1 Passed: 2",
+      2))
+  }
+
+  it should "return Passed if both properties pass" in {
+    import Prop.Implicits._
+    val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 1 && a < 3)
+    val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 100)
+
+    (lhs && rhs).run(100, SimpleRNG(123)) shouldEqual (Passed)
+  }
+
+  it should "return Failed if one of the properties fails" in {
+    import Prop.Implicits._
+    val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
+    val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 100)
+
+    (lhs && rhs).run(100, SimpleRNG(123)) shouldEqual (Failed("Failed: 1 Passed: 2", 2))
+  }
+
+  it should "return Failed if both properties fail" in {
+    import Prop.Implicits._
+    val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
+    val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 2)
+
+    (lhs && rhs).run(100, SimpleRNG(123)) shouldEqual (Failed("Left: Failed: 1 Passed: 2 Right: Failed: 14 Passed: 1",
+                                                              3))
+  }
+
+  it should "return Passed if one of the properties pass" in {
+    import Prop.Implicits._
+    val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
+    val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 100)
+
+    (lhs || rhs).run(100, SimpleRNG(123)) shouldEqual (Passed)
+  }
+
+  it should "return Failed if both of the properties fail" in {
+    import Prop.Implicits._
+    val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
+    val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 2)
+
+    (lhs || rhs).run(100, SimpleRNG(123)) shouldEqual (Failed("Left: Failed: 1 Passed: 2 Right: Failed: 14 Passed: 1",
+                                                              3))
+
+  }
 }

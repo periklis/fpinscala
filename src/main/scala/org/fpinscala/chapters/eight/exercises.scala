@@ -1,6 +1,7 @@
 package org.fpinscala.chapters.eight
 
 import org.fpinscala.chapters.six.Exercises.{State, RNG}
+import scala.util.control.NonFatal
 
 object Exercises {
 
@@ -17,15 +18,6 @@ object Exercises {
       res = this.check && o.check
       this
     }
-  }
-
-  trait Prop {
-    type FailedCase   = String
-    type SuccessCount = Int
-
-    def check: Either[(FailedCase, SuccessCount), SuccessCount] = ???
-
-    def &&(o: Prop): Prop = ???
   }
 
   case class Gen[T](sample: State[RNG, T])
@@ -74,7 +66,66 @@ object Exercises {
       }
   }
 
+  sealed trait Result {
+    val isFalsified: Boolean
+  }
+  case object Passed extends Result {
+    val isFalsified = false
+  }
+  case class Failed(failure: Prop.FailedCase, successes: Prop.SuccessCount) extends Result {
+    val isFalsified = true
+  }
+
+  case class Prop(run: (Prop.TestCases, RNG) => Result) {}
+
   object Prop {
-    def forAll[A](a: Gen[A])(pred: A => Boolean): Prop = ???
+    type TestCases    = Int
+    type FailedCase   = String
+    type SuccessCount = Int
+
+    def forAll[A](ga: Gen[A])(pred: A => Boolean): Prop = Prop {
+      case (testcases, rng) =>
+        val values = Gen.listOfN(testcases, ga).sample.run(rng)._1
+
+        values
+          .zip(Range(1, testcases))
+          .map {
+            case (a, c) =>
+              try {
+                if (pred(a)) Passed
+                else Failed(s"Failed: ${a.toString()} Passed: $c", c)
+              } catch {
+                case NonFatal(e) => Failed(s"Failed: ${a.toString}\n Passed: $c\n Msg: ${e.getMessage} ", c)
+              }
+          }
+          .find(_.isFalsified)
+          .getOrElse(Passed)
+    }
+
+    private def &&(lhs: Prop, rhs: Prop): Prop = Prop {
+      case (testcases, rng) =>
+        (lhs.run(testcases, rng), rhs.run(testcases, rng)) match {
+          case (Passed, Passed)                 => Passed
+          case (lf @ Failed(_, _), Passed)      => lf
+          case (Passed, rf @ Failed(_, _))      => rf
+          case (Failed(lf, lc), Failed(rf, rc)) => Failed(s"Left: $lf Right: $rf", lc + rc)
+        }
+    }
+
+    private def ||(lhs: Prop, rhs: Prop): Prop = Prop {
+      case (testcases, rng) =>
+        (lhs.run(testcases, rng), rhs.run(testcases, rng)) match {
+          case (Passed, _)                      => Passed
+          case (_, Passed)                      => Passed
+          case (Failed(lf, lc), Failed(rf, rc)) => Failed(s"Left: $lf Right: $rf", lc + rc)
+        }
+    }
+
+    object Implicits {
+      implicit class PropWithOps(p: Prop) {
+        def &&(o: Prop): Prop = Prop.&&(p, o)
+        def ||(o: Prop): Prop = Prop.||(p, o)
+      }
+    }
   }
 }
