@@ -91,13 +91,13 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   behavior of "exercise 8.9"
 
   it should "check that all generated values pass the predicate" in {
-    Prop.forAll(Gen.choose(1, 3))(a => a >= 1 && a < 3).run(100, SimpleRNG(123)) shouldEqual (Passed)
+    Prop.forAll(Gen.choose(1, 3))(a => a >= 1 && a < 3).run(100, 100, SimpleRNG(123)) shouldEqual (Passed)
   }
 
   it should "return the failed case and the sucess count when the predicate is not passed" in {
-    Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3).run(100, SimpleRNG(123)) shouldEqual (Failed(
-      "Failed: 1 Passed: 2",
-      2))
+    Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3).run(100, 100, SimpleRNG(123)) shouldEqual (Failed(
+      "Failed: 1 Passed: 1",
+      1))
   }
 
   it should "return Passed if both properties pass" in {
@@ -105,7 +105,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 1 && a < 3)
     val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 100)
 
-    (lhs && rhs).run(100, SimpleRNG(123)) shouldEqual (Passed)
+    (lhs && rhs).run(100, 100, SimpleRNG(123)) shouldEqual (Passed)
   }
 
   it should "return Failed if one of the properties fails" in {
@@ -113,7 +113,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
     val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 100)
 
-    (lhs && rhs).run(100, SimpleRNG(123)) shouldEqual (Failed("Failed: 1 Passed: 2", 2))
+    (lhs && rhs).run(100, 100, SimpleRNG(123)) shouldEqual (Failed("Failed: 1 Passed: 1", 1))
   }
 
   it should "return Failed if both properties fail" in {
@@ -121,8 +121,9 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
     val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 2)
 
-    (lhs && rhs).run(100, SimpleRNG(123)) shouldEqual (Failed("Left: Failed: 1 Passed: 2 Right: Failed: 14 Passed: 1",
-                                                              3))
+    (lhs && rhs).run(100, 100, SimpleRNG(123)) shouldEqual (Failed(
+      "Left: Failed: 1 Passed: 1 Right: Failed: 14 Passed: 0",
+      1))
   }
 
   it should "return Passed if one of the properties pass" in {
@@ -130,7 +131,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
     val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 100)
 
-    (lhs || rhs).run(100, SimpleRNG(123)) shouldEqual (Passed)
+    (lhs || rhs).run(100, 100, SimpleRNG(123)) shouldEqual (Passed)
   }
 
   it should "return Failed if both of the properties fail" in {
@@ -138,8 +139,17 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Prop.forAll(Gen.choose(1, 3))(a => a >= 2 && a < 3)
     val rhs = Prop.forAll(Gen.choose(1, 100))(a => a >= 1 && a < 2)
 
-    (lhs || rhs).run(100, SimpleRNG(123)) shouldEqual (Failed("Left: Failed: 1 Passed: 2 Right: Failed: 14 Passed: 1",
-                                                              3))
+    (lhs || rhs).run(100, 100, SimpleRNG(123)) shouldEqual (Failed(
+      "Left: Failed: 1 Passed: 1 Right: Failed: 14 Passed: 0",
+      1))
+  }
 
+  behavior of "exercise 8.10 - 8.12"
+
+  it should "return the minimal failing testcase" in {
+    val gen  = SGen.choose(200, 300)
+    val pred = (i: Int) => i < 50 && i > 34
+
+    Prop.forAll(gen)(pred).run(100, 1, SimpleRNG(123)) shouldEqual (Failed("Failed: 200 Passed: 0", 0))
   }
 }
