@@ -86,6 +86,9 @@ object Exercises {
     def listOf[A](g: Gen[A]): SGen[List[A]] =
       SGen(Gen.listOfN(_, g))
 
+    def nonEmptyListOf[A](g: Gen[A]): SGen[List[A]] =
+      SGen(n => Gen.listOfN(n max 1, g))
+
     // def listOfN[A](n: Int, g: SGen[A]): SGen[List[A]] =
     //   SGen(a => Gen.listOfN(n, g.forSize(a)))
 

@@ -152,4 +152,32 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
 
     Prop.forAll(gen)(pred).run(100, 1, SimpleRNG(123)) shouldEqual (Failed("Failed: 200 Passed: 0", 0))
   }
+
+  behavior of "exercise 8.13"
+
+  it should "return prove max for non empty lists only" in {
+    val smallInt = Gen.choose(-10, 10)
+    val maxPred = (ns: List[Int]) => {
+      val max = ns.max
+      !ns.exists(_ > max)
+    }
+
+    Prop.forAll(SGen.nonEmptyListOf(smallInt))(maxPred).run(100, 10, SimpleRNG(123)) shouldEqual (Passed)
+  }
+
+  behavior of "exercise 8.14"
+
+  it should "prove sorted property for List.sorted" in {
+    val ints       = Gen.choose(200, 1000)
+    val listOfInts = SGen.listOf(ints)
+    val sortedPred = (ns: List[Int]) => {
+      val sorted = ns.sorted
+
+      sorted.isEmpty || sorted.tail.isEmpty || !sorted.zip(sorted.tail).exists {
+        case (a, b) => a > b
+      }
+    }
+
+    Prop.forAll(listOfInts)(sortedPred).run(100, 20, SimpleRNG(198099)) shouldEqual (Passed)
+  }
 }
