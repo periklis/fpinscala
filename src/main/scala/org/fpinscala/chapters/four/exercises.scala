@@ -79,43 +79,34 @@ object Exercises {
   case class Right[+A](value: A) extends Either[Nothing, A]
 
   object Either {
-    def map[E, A, B]: Either[E, A] => (A => B) => Either[E, B] =
-      e =>
-        f =>
-          e match {
-            case Left(e)  => Left(e)
-            case Right(a) => Right(f(a))
+    def map[E, A, B](e: Either[E, A])(f: (A => B)): Either[E, B] =
+      e match {
+        case Left(e)  => Left(e)
+        case Right(a) => Right(f(a))
       }
 
-    def flatMap[E, EE >: E, A, B]: Either[E, A] => (A => Either[EE, B]) => Either[EE, B] =
-      e =>
-        f =>
-          e match {
-            case Left(e)  => Left(e)
-            case Right(a) => f(a)
+    def flatMap[E, EE >: E, A, B](e: Either[E, A])(f: A => Either[EE, B]): Either[EE, B] =
+      e match {
+        case Left(e)  => Left(e)
+        case Right(a) => f(a)
       }
 
-    def orElse[E, EE >: E, A, B >: A]: Either[E, A] => (=> Either[EE, B]) => Either[EE, B] =
-      e =>
-        o =>
-          e match {
-            case Left(_)  => o
-            case Right(_) => e
+    def orElse[E, EE >: E, A, B >: A](e: Either[E, A])(o: => Either[EE, B]): Either[EE, B] =
+      e match {
+        case Left(_)  => o
+        case Right(_) => e
       }
 
-    def map2[E, EE >: E, A, B, C]: Either[E, A] => Either[EE, B] => ((A, B) => C) => Either[EE, C] =
-      lhs =>
-        rhs =>
-          f =>
-            (lhs, rhs) match {
-              case (Right(a), Right(b)) => Right(f(a, b))
-              case (Left(e), _)         => Left(e)
-              case (_, Left(e))         => Left(e)
+    def map2[E, EE >: E, A, B, C](lhs: Either[E, A], rhs: Either[EE, B])(f: (A, B) => C): Either[EE, C] =
+      (lhs, rhs) match {
+        case (Right(a), Right(b)) => Right(f(a, b))
+        case (Left(e), _)         => Left(e)
+        case (_, Left(e))         => Left(e)
 
       }
 
-    def sequence[E, A]: List[Either[E, A]] => Either[E, List[A]] =
-      _ match {
+    def sequence[E, A](es: List[Either[E, A]]): Either[E, List[A]] =
+      es match {
         case Nil => Right(Nil)
         case x :: xs =>
           x match {
@@ -124,64 +115,54 @@ object Exercises {
           }
       }
 
-    def traverse[E, A, B]: List[A] => (A => Either[E, B]) => Either[E, List[B]] =
-      es =>
-        f =>
-          es match {
-            case Nil      => Right(Nil)
-            case x :: Nil => map(f(x))(_ :: Nil)
-            case x :: xs  => flatMap(f(x))(a => flatMap(traverse(xs)(f))(b => Right(a :: b)))
+    def traverse[E, A, B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] =
+      es match {
+        case Nil      => Right(Nil)
+        case x :: Nil => map(f(x))(_ :: Nil)
+        case x :: xs  => flatMap(f(x))(a => flatMap(traverse(xs)(f))(b => Right(a :: b)))
       }
 
     object WithAllErrors {
-      def map2[E, EE >: E, A, B, C]: Either[E, A] => Either[EE, B] => ((A, B) => C) => Either[List[EE], C] =
-        lhs =>
-          rhs =>
-            f =>
-              (lhs, rhs) match {
-                case (Right(a), Right(b)) => Right(f(a, b))
-                case (Left(e), Right(_))  => Left(e :: Nil)
-                case (Right(_), Left(e))  => Left(e :: Nil)
-                case (Left(e1), Left(e2)) => Left(e1 :: e2 :: Nil)
+      def map2[E, EE >: E, A, B, C](lhs: Either[E, A], rhs: Either[EE, B])(f: (A, B) => C): Either[List[EE], C] =
+        (lhs, rhs) match {
+          case (Right(a), Right(b)) => Right(f(a, b))
+          case (Left(e), Right(_))  => Left(e :: Nil)
+          case (Right(_), Left(e))  => Left(e :: Nil)
+          case (Left(e1), Left(e2)) => Left(e1 :: e2 :: Nil)
         }
 
-      def sequence[E, A]: List[Either[E, A]] => List[E] => Either[List[E], List[A]] =
-        es =>
-          ee =>
-            es match {
-              case Nil            => Right(Nil)
-              case Left(e) :: Nil => Left(ee :+ e)
-              case Right(v) :: Nil =>
-                if (ee != Nil)
-                  Left(ee)
-                else
-                  Right(v :: Nil)
-              case x :: xs =>
-                x match {
-                  case Right(v) => flatMap(sequence(xs)(ee))(as => Right(v :: as))
-                  case Left(e)  => sequence(xs)(ee :+ e)
-                }
+      def sequence[E, A](es: List[Either[E, A]], ee: List[E]): Either[List[E], List[A]] =
+        es match {
+          case Nil            => Right(Nil)
+          case Left(e) :: Nil => Left(ee :+ e)
+          case Right(v) :: Nil =>
+            if (ee != Nil)
+              Left(ee)
+            else
+              Right(v :: Nil)
+          case x :: xs =>
+            x match {
+              case Right(v) => flatMap(sequence(xs, ee))(as => Right(v :: as))
+              case Left(e)  => sequence(xs, ee :+ e)
+            }
 
         }
 
-      def traverse[E, A, B]: List[A] => List[E] => (A => Either[List[E], B]) => Either[List[E], List[B]] =
-        es =>
-          ee =>
-            f =>
-              es match {
-                case Nil => Right(Nil)
-                case x :: Nil =>
-                  if (ee != Nil)
-                    f(x) match {
-                      case Left(ee1) => Left(ee ::: ee1)
-                      case _         => Left(ee)
-                    } else
-                    flatMap(f(x))(b => Right(b :: Nil))
-                case x :: xs =>
-                  f(x) match {
-                    case Right(bs) => flatMap(traverse(xs)(ee)(f))(as => Right(bs :: as))
-                    case Left(ee1) => traverse(xs)(ee ::: ee1)(f)
-                  }
+      def traverse[E, A, B](es: List[A], ee: List[E])(f: A => Either[List[E], B]): Either[List[E], List[B]] =
+        es match {
+          case Nil => Right(Nil)
+          case x :: Nil =>
+            if (ee != Nil)
+              f(x) match {
+                case Left(ee1) => Left(ee ::: ee1)
+                case _         => Left(ee)
+              } else
+              flatMap(f(x))(b => Right(b :: Nil))
+          case x :: xs =>
+            f(x) match {
+              case Right(bs) => flatMap(traverse(xs, ee)(f))(as => Right(bs :: as))
+              case Left(ee1) => traverse(xs, ee ::: ee1)(f)
+            }
         }
     }
   }
@@ -204,6 +185,6 @@ object Exercises {
         Right(age)
 
     def mkPerson(name: String, age: Int): Either[Seq[String], Person] =
-      Either.WithAllErrors.map2(mkName(name))(mkAge(age))((n, a) => Person(Name(n), Age(a)))
+      Either.WithAllErrors.map2(mkName(name), mkAge(age))((n, a) => Person(Name(n), Age(a)))
   }
 }
