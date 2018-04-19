@@ -21,30 +21,30 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
 
   it should "return empty stream when taking zero elements from stream" in {
     val as = Stream(2, 3, 4, 5, 6)
-    take(as)(0) shouldBe Empty
+    take(as, 0) shouldBe Empty
   }
 
   it should "return the empty stream when taking any number of elements from empty stream" in {
-    take(Empty)(2) shouldBe Empty
+    take(Empty, 2) shouldBe Empty
   }
 
   it should "return a new stream with exact n first elements when non-empty stream given" in {
     val as = Stream(2, 3, 4, 5, 6)
-    toList(take(as)(2)) should contain allElementsOf (toList(Stream(2, 3)))
+    toList(take(as, 2)) should contain allElementsOf (toList(Stream(2, 3)))
   }
 
   it should "return the initial stream when dropping zero elements from stream" in {
     val as = Stream(2, 3, 4, 5, 6)
-    toList(drop(as)(0)) should contain allElementsOf (toList(as))
+    toList(drop(as, 0)) should contain allElementsOf (toList(as))
   }
 
   it should "return the empty stream when dropping any number of elements from empty stream" in {
-    drop(Empty)(2) shouldBe Empty
+    drop(Empty, 2) shouldBe Empty
   }
 
   it should "return a new stream with exact size -n tail elements when non-empty stream given" in {
     val as = Stream(2, 3, 4, 5, 6)
-    toList(drop(as)(2)) should contain allElementsOf (toList(Stream(4, 5, 6)))
+    toList(drop(as, 2)) should contain allElementsOf (toList(Stream(4, 5, 6)))
   }
 
   behavior of "exercise 5.3"
@@ -191,12 +191,12 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   behavior of "exercise 5.7 - append"
 
   it should "return a single element stream when appending one element to the empty stream" in {
-    toList(append(Empty)(Stream(1))) should contain allElementsOf (toList(Stream(1)))
+    toList(append(Empty, Stream(1))) should contain allElementsOf (toList(Stream(1)))
   }
 
   it should "return a new stream with all elements plus the one given when appending one element to a non empty stream" in {
     val as = Stream(1, 2, 3, 4, 5)
-    toList(append(as)(Stream(6))) should contain allElementsOf (toList(Stream(1, 2, 3, 4, 5, 6)))
+    toList(append(as, Stream(6))) should contain allElementsOf (toList(Stream(1, 2, 3, 4, 5, 6)))
   }
 
   behavior of "exercise 5.7 - flatMap"
@@ -227,16 +227,16 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
 
   it should "return empty stream when taking zero elements from stream" in {
     val as = Stream(2, 3, 4, 5, 6)
-    WithUnfold.take(as)(0) shouldBe Empty
+    WithUnfold.take(as, 0) shouldBe Empty
   }
 
   it should "return the empty stream when taking any number of elements from empty stream" in {
-    WithUnfold.take(Empty)(2) shouldBe Empty
+    WithUnfold.take(Empty, 2) shouldBe Empty
   }
 
   it should "return a new stream with exact n first elements when non-empty stream given" in {
     val as = Stream(2, 3, 4, 5, 6)
-    toList(WithUnfold.take(as)(2)) should contain allElementsOf (toList(Stream(2, 3)))
+    toList(WithUnfold.take(as, 2)) should contain allElementsOf (toList(Stream(2, 3)))
   }
 
   behavior of "exercise 5.13 - takeWhile"
@@ -260,13 +260,13 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   behavior of "exercise 5.13 - zipWith"
 
   it should "return the empty stream when zipping twice the empty stream" in {
-    WithUnfold.zipWith(Empty: Stream[Int])(Empty: Stream[Int])((a, b) => a) shouldBe Empty
+    WithUnfold.zipWith(Empty: Stream[Int], Empty: Stream[Int])((a, b) => a) shouldBe Empty
   }
 
   it should "return the lhs stream when zipping lhs with the empty stream" in {
     val lhs              = Stream(2)
     val rhs: Stream[Int] = Empty
-    val res              = WithUnfold.zipWith(lhs)(rhs)((a, b) => a)
+    val res              = WithUnfold.zipWith(lhs, rhs)((a, b) => a)
 
     toList(res) should contain allElementsOf (toList(lhs))
   }
@@ -274,7 +274,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   it should "return the rhs stream when zipping the empty stream with rhs" in {
     val lhs              = Empty
     val rhs: Stream[Int] = Stream(2)
-    val res              = WithUnfold.zipWith(lhs)(rhs)((a, b) => a)
+    val res              = WithUnfold.zipWith(lhs, rhs)((a, b) => a)
 
     toList(res) should contain allElementsOf (toList(rhs))
   }
@@ -283,7 +283,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Stream(2, 3)
     val rhs = Stream(4, 5)
     val f   = (a: Int, b: Int) => a + b
-    val res = WithUnfold.zipWith(lhs)(rhs)(f)
+    val res = WithUnfold.zipWith(lhs, rhs)(f)
 
     toList(res) should contain allElementsOf (toList(Stream(6, 8)))
   }
@@ -292,7 +292,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Stream(2, 3, 7)
     val rhs = Stream(4, 5)
     val f   = (a: Int, b: Int) => a + b
-    val res = WithUnfold.zipWith(lhs)(rhs)(f)
+    val res = WithUnfold.zipWith(lhs, rhs)(f)
 
     toList(res) should contain allElementsOf (toList(Stream(6, 8, 7)))
   }
@@ -301,7 +301,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val lhs = Stream(2, 3)
     val rhs = Stream(4, 5, 10)
     val f   = (a: Int, b: Int) => a + b
-    val res = WithUnfold.zipWith(lhs)(rhs)(f)
+    val res = WithUnfold.zipWith(lhs, rhs)(f)
 
     toList(res) should contain allElementsOf (toList(Stream(6, 8, 10)))
   }
@@ -309,13 +309,13 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   behavior of "exercise 5.13 - zipAll"
 
   it should "return the empty stream when zipping twice the empty stream" in {
-    WithUnfold.zipAll(Empty)(Empty) shouldBe Empty
+    WithUnfold.zipAll(Empty, Empty) shouldBe Empty
   }
 
   it should "return the lhs stream when zipping lhs with the empty stream" in {
     val lhs              = Stream(2)
     val rhs: Stream[Int] = Empty
-    val res              = WithUnfold.zipAll(lhs)(rhs)
+    val res              = WithUnfold.zipAll(lhs, rhs)
 
     toList(res) should contain allElementsOf (toList(Stream((Some(2), None))))
   }
@@ -323,7 +323,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   it should "return the rhs stream when zipping the empty stream with rhs" in {
     val lhs              = Empty
     val rhs: Stream[Int] = Stream(2)
-    val res              = WithUnfold.zipAll(lhs)(rhs)
+    val res              = WithUnfold.zipAll(lhs, rhs)
 
     toList(res) should contain allElementsOf (toList(Stream((None, Some(2)))))
   }
@@ -331,7 +331,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   it should "return the zipped stream when two equal size streams are given" in {
     val lhs      = Stream(2, 3)
     val rhs      = Stream(4, 5)
-    val res      = WithUnfold.zipAll(lhs)(rhs)
+    val res      = WithUnfold.zipAll(lhs, rhs)
     val expected = Stream((Some(2), Some(4)), (Some(3), Some(5)))
 
     toList(res) should contain allElementsOf (toList(expected))
@@ -340,7 +340,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   it should "return the zipped stream filled by lhs elemens when lhs stream bigger than rhs given" in {
     val lhs      = Stream(2, 3, 7)
     val rhs      = Stream(4, 5)
-    val res      = WithUnfold.zipAll(lhs)(rhs)
+    val res      = WithUnfold.zipAll(lhs, rhs)
     val expected = Stream((Some(2), Some(4)), (Some(3), Some(5)), (Some(7), None))
 
     toList(res) should contain allElementsOf (toList(expected))
@@ -349,7 +349,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   it should "return the zipped stream filled by rhs elemens when rhs stream bigger than lhs given" in {
     val lhs      = Stream(2, 3)
     val rhs      = Stream(4, 5, 10)
-    val res      = WithUnfold.zipAll(lhs)(rhs)
+    val res      = WithUnfold.zipAll(lhs, rhs)
     val expected = Stream((Some(2), Some(4)), (Some(3), Some(5)), (None, Some(10)))
 
     toList(res) should contain allElementsOf (toList(expected))
@@ -358,19 +358,19 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   behavior of "exercise 5.14"
 
   it should "return false when prefix is non empty stream for the empty stream" in {
-    startsWith(Stream(2))(Empty) shouldBe false
+    startsWith(Stream(2), Empty) shouldBe false
   }
 
   it should "return true when prefix is empty stream for the empty stream" in {
-    startsWith(Empty)(Empty) shouldBe true
+    startsWith(Empty, Empty) shouldBe true
   }
 
   it should "return true when a non empty stream is prefix of itself" in {
-    startsWith(Stream(2))(Stream(2)) shouldBe true
+    startsWith(Stream(2), Stream(2)) shouldBe true
   }
 
   it should "return true when a non empty stream is prefix of another non empty stream" in {
-    startsWith(Stream(1, 2))(Stream(1, 2, 3)) shouldBe true
+    startsWith(Stream(1, 2), Stream(1, 2, 3)) shouldBe true
   }
 
   behavior of "exercise 5.15 - toListDeep for tails"
@@ -409,21 +409,21 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
   it should "return true when needle is the empty stream" in {
     val as = Stream(1, 2, 3)
 
-    hasSubsequence(as)(Empty) shouldBe true
+    hasSubsequence(as, Empty) shouldBe true
   }
 
   it should "return true when needle is a substream of stream" in {
     val as = Stream(1, 2, 3)
     val ns = Stream(2)
 
-    hasSubsequence(as)(ns) shouldBe true
+    hasSubsequence(as, ns) shouldBe true
   }
 
   it should "return false when needle is not a substream of stream" in {
     val as = Stream(1, 2, 3)
     val ns = Stream(4)
 
-    hasSubsequence(as)(ns) shouldBe false
+    hasSubsequence(as, ns) shouldBe false
   }
 
   it should "return true if each needle is a substream of stream" in {
@@ -432,7 +432,7 @@ class ExercisesSpec extends FlatSpec with Matchers with Inspectors {
     val ns2 = Stream(2, 3)
     val ns3 = Stream(3, 4)
 
-    forAll(Seq(ns1, ns2, ns3))((ns) => hasSubsequence(as)(ns) shouldBe true)
+    forAll(Seq(ns1, ns2, ns3))((ns) => hasSubsequence(as, ns) shouldBe true)
   }
 
   behavior of "exercise 5.16"
