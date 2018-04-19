@@ -8,20 +8,19 @@ object Exercises {
   case class Par[A](run: () => A)
 
   object Par {
-    def unit[A]: A => Par[A] =
-      a => Par(() => a)
+    def unit[A](a: A): Par[A] =
+      Par(() => a)
 
-    def fork[A]: (=> Par[A]) => Par[A] =
-      p => p
+    def fork[A](p: => Par[A]): Par[A] = p
 
-    def lazyUnit[A]: A => Par[A] =
-      a => fork(unit(a))
+    def lazyUnit[A](a: A): Par[A] =
+      fork(unit(a))
 
-    def run[A]: Par[A] => A =
-      _.run()
+    def run[A](p: Par[A]): A =
+      p.run()
 
-    def map2[A, B, C]: Par[A] => Par[B] => ((A, B) => C) => Par[C] =
-      pa => pb => f => lazyUnit(f(run(pa), run(pb)))
+    def map2[A, B, C](pa: Par[A], pb: Par[B])(f: (A, B) => C): Par[C] =
+      lazyUnit(f(run(pa), run(pb)))
   }
 
   /* Exercise 7.2 - Bad approach
@@ -55,69 +54,62 @@ object Exercises {
   type Par3[A] = ExecutionContext => Future[A]
 
   object Par3 {
-    def unit[A]: A => Par3[A] =
-      a => Future(a)(_)
+    def unit[A](a: A): Par3[A] =
+      Future(a)(_)
 
     def fork[A](p: => Par3[A]): Par3[A] =
       ec => p(ec)
 
-    def lazyUnit[A]: A => Par3[A] =
-      a => fork(unit(a))
+    def lazyUnit[A](a: A): Par3[A] =
+      fork(unit(a))
 
-    def run[A]: ExecutionContext => Par3[A] => Future[A] =
-      ec => p => p(ec)
+    def run[A](ec: ExecutionContext)(p: Par3[A]): Future[A] =
+      p(ec)
 
-    def flatMap[A, B]: Par3[A] => (A => Par3[B]) => Par3[B] =
-      pa => f => ec => pa(ec).flatMap(v => f(v)(ec))(ec)
+    def flatMap[A, B](pa: Par3[A])(f: A => Par3[B]): Par3[B] =
+      ec => pa(ec).flatMap(v => f(v)(ec))(ec)
 
-    def map[A, B]: Par3[A] => (A => B) => Par3[B] =
-      pa => f => flatMap(pa)(a => unit(f(a)))
+    def map[A, B](pa: Par3[A])(f: A => B): Par3[B] =
+      flatMap(pa)(a => unit(f(a)))
 
-    def map2[A, B, C]: Par3[A] => Par3[B] => ((A, B) => C) => Par3[C] =
-      pa => pb => f => flatMap(pa)(a => map(pb)(b => f(a, b)))
+    def map2[A, B, C](pa: Par3[A], pb: Par3[B])(f: (A, B) => C): Par3[C] =
+      flatMap(pa)(a => map(pb)(b => f(a, b)))
 
-    def map3[A, B, C, D]: Par3[A] => Par3[B] => Par3[C] => ((A, B, C) => D) => Par3[D] =
-      pa => pb => pc => f => map2(map2(pa)(pb)((f.curried)(_)(_)))(pc)((g, c) => g(c))
+    def map3[A, B, C, D](pa: Par3[A], pb: Par3[B], pc: Par3[C])(f: (A, B, C) => D): Par3[D] =
+      map2(map2(pa, pb)((f.curried)(_)(_)), pc)((g, c) => g(c))
 
-    def map4[A, B, C, D, E]: Par3[A] => Par3[B] => Par3[C] => Par3[D] => ((A, B, C, D) => E) => Par3[E] =
-      pa =>
-        pb =>
-          pc =>
-            pd =>
-              f => {
-                val ab = map2(pa)(pb)((f.curried)(_)(_))
-                val c  = map2(ab)(pc)((g, c) => g(c))
-                map2(c)(pd)((h, d) => h(d))
-      }
+    def map4[A, B, C, D, E](pa: Par3[A], pb: Par3[B], pc: Par3[C], pd: Par3[D])(f: (A, B, C, D) => E): Par3[E] = {
+      val ab = map2(pa, pb)((f.curried)(_)(_))
+      val c  = map2(ab, pc)((g, c) => g(c))
+      map2(c, pd)((h, d) => h(d))
+    }
 
-    def asyncF[A, B]: (A => B) => A => Par3[B] =
-      f => a => lazyUnit(f(a))
+    def asyncF[A, B](f: A => B)(a: A): Par3[B] =
+      lazyUnit(f(a))
 
-    def sequence[A]: List[Par3[A]] => Par3[List[A]] =
-      _ match {
+    def sequence[A](ps: List[Par3[A]]): Par3[List[A]] =
+      ps match {
         case Nil       => unit(Nil)
         case p :: pars => flatMap(sequence(pars))(as => map(p)(_ :: as))
       }
 
-    def parMap[A, B]: List[A] => (A => B) => Par3[List[B]] =
-      as => f => fork(sequence(as.map(asyncF(f))))
+    def parMap[A, B](as: List[A])(f: A => B): Par3[List[B]] =
+      fork(sequence(as.map(asyncF(f))))
 
-    def parFilter[A]: List[A] => (A => Boolean) => Par3[List[A]] =
-      as =>
-        f =>
-          fork {
-            val ps = as.map(asyncF((a: A) => List(a).filter(f)))
-            ps.foldRight(unit(Nil: List[A]))(map2(_)(_)(_ ::: _))
+    def parFilter[A](as: List[A])(f: A => Boolean): Par3[List[A]] =
+      fork {
+        val ps = as.map(asyncF((a: A) => List(a).filter(f)))
+        ps.foldRight(unit(Nil: List[A]))(map2(_, _)(_ ::: _))
       }
 
-    def choiceN[A]: Par3[Int] => List[Par3[A]] => Par3[A] =
-      pn => ps => flatMap(pn)(n => ps(n))
+    def choiceN[A](pn: Par3[Int], ps: List[Par3[A]]): Par3[A] =
+      flatMap(pn)(n => ps(n))
 
-    def choice[A]: Par3[Boolean] => Par3[A] => Par3[A] => Par3[A] =
-      c => pa => pb => choiceN(map(c)(r => if (!r) 0 else 1))(pa :: pb :: Nil)
+    def choice[A](c: Par3[Boolean], pa: Par3[A], pb: Par3[A]): Par3[A] =
+      choiceN(map(c)(r => if (!r) 0 else 1), pa :: pb :: Nil)
 
-    def join[A]: Par3[Par3[A]] => Par3[A] =
-      p => ec => p(ec).flatMap(v => v(ec))(ec)
+    def join[A](p: Par3[Par3[A]]): Par3[A] =
+      ec => p(ec).flatMap(v => v(ec))(ec)
   }
 
   /* Exercise 7.7

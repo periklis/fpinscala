@@ -14,7 +14,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   behavior of "exercise 7.1"
 
   it should "return f-mapped result of the two parallel computations" in {
-    Par.run(Par.map2(Par.unit(2))(Par.unit(3))(_ + _)) shouldBe Par.run(Par.unit(5))
+    Par.run(Par.map2(Par.unit(2), Par.unit(3))(_ + _)) shouldBe Par.run(Par.unit(5))
   }
 
   behavior of "exercise 7.2 - bad approach"
@@ -29,7 +29,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   behavior of "exercise 7.2 - good approach"
 
   it should "return f-mapped result of the two parallel computations" in {
-    val p = Par3.map2(Par3.unit(2))(Par3.unit(3))(_ + _)
+    val p = Par3.map2(Par3.unit(2), Par3.unit(3))(_ + _)
     val e = Par3.lazyUnit(5)
 
     Await.result(Par3.run(ec)(p), d) shouldBe Await.result(Par3.run(ec)(e), d)
@@ -38,7 +38,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   behavior of "exercise 7.4"
 
   it should "return the result of asyncF after running Par" in {
-    val af = Par3.asyncF((a: Int) => a + 2)
+    val af = Par3.asyncF((a: Int) => a + 2) _
 
     Await.result(Par3.run(ec)(af(2)), d) shouldBe 4
   }
@@ -80,14 +80,14 @@ class ExercisesSpec extends FlatSpec with Matchers {
   }
 
   it should "return f-mapped result of the three parallel computations" in {
-    val p = Par3.map3(Par3.unit(2))(Par3.unit(3))(Par3.unit(4))(_ + _ + _)
+    val p = Par3.map3(Par3.unit(2), Par3.unit(3), Par3.unit(4))(_ + _ + _)
     val e = Par3.lazyUnit(9)
 
     Await.result(Par3.run(ec)(p), d) shouldBe Await.result(Par3.run(ec)(e), d)
   }
 
   it should "return f-mapped result of the four parallel computations" in {
-    val p = Par3.map4(Par3.unit(2))(Par3.unit(3))(Par3.unit(4))(Par3.unit(1))(_ + _ + _ + _)
+    val p = Par3.map4(Par3.unit(2), Par3.unit(3), Par3.unit(4), Par3.unit(1))(_ + _ + _ + _)
     val e = Par3.lazyUnit(10)
 
     Await.result(Par3.run(ec)(p), d) shouldBe Await.result(Par3.run(ec)(e), d)
@@ -98,7 +98,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   it should "return the n-th parallel computation when Par of n given" in {
     val pn = Par3.unit(2)
     val ps = Par3.unit(1) :: Par3.unit(2) :: Par3.unit(3) :: Par3.unit(4) :: Nil
-    val cN = Par3.choiceN(pn)(ps)
+    val cN = Par3.choiceN(pn, ps)
 
     Await.result(Par3.run(ec)(cN), d) shouldBe Await.result(Par3.run(ec)(Par3.unit(3)), d)
   }
@@ -107,7 +107,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
     val cond = Par3.unit(false)
     val pa   = Par3.unit(1)
     val pb   = Par3.unit(2)
-    val c    = Par3.choice(cond)(pa)(pb)
+    val c    = Par3.choice(cond, pa, pb)
 
     Await.result(Par3.run(ec)(c), d) shouldBe Await.result(Par3.run(ec)(pa), d)
   }
@@ -116,7 +116,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
     val cond = Par3.unit(true)
     val pa   = Par3.unit(1)
     val pb   = Par3.unit(2)
-    val c    = Par3.choice(cond)(pa)(pb)
+    val c    = Par3.choice(cond, pa, pb)
 
     Await.result(Par3.run(ec)(c), d) shouldBe Await.result(Par3.run(ec)(pb), d)
   }
