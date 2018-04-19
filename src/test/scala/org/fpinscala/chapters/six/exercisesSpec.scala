@@ -54,7 +54,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   behavior of "exercise 6.6"
 
   it should "return the combination of two random generators" in {
-    val r = RNG.map2(RNG.nonNegativeNextInt)(RNG.WithRand.double)((_, _))
+    val r = RNG.map2(RNG.nonNegativeNextInt, RNG.WithRand.double)((_, _))
 
     r(SimpleRNG(0))._1 shouldBe a[(Int, Double)]
   }
@@ -86,7 +86,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   it should "return the combination of both random ints when f applied" in {
     val g = RNG.nonNegativeNextInt
 
-    RNG.WithFlatMap.map2(g)(g)(_ + _ + 2)(SimpleRNG(0))._1 shouldBe 2
+    RNG.WithFlatMap.map2(g, g)(_ + _ + 2)(SimpleRNG(0))._1 shouldBe 2
   }
 
   behavior of "exercise 6.10"
@@ -102,7 +102,7 @@ class ExercisesSpec extends FlatSpec with Matchers {
   it should "return the combination of both random ints when f applied" in {
     val g = RNG2.nonNegativeNextInt
 
-    State.map2(g)(g)(_ + _ + 1).run(SimpleRNG(0))._1 shouldBe 1
+    State.map2(g, g)(_ + _ + 1).run(SimpleRNG(0))._1 shouldBe 1
   }
 
   it should "return a state with the empty list when the empty list given" in {
@@ -119,32 +119,32 @@ class ExercisesSpec extends FlatSpec with Matchers {
   behavior of "exercise 6.11"
 
   it should "return the initial state of the machine when the empty list of inputs given" in {
-    State.toA(Machine(false, 10, 5))(simulateMachine(Nil)) shouldBe Tuple2(10, 5)
+    State.toA(Machine(false, 10, 5), simulateMachine(Nil)) shouldBe Tuple2(10, 5)
   }
 
   it should "accept a new coin when machine is locked" in {
-    State.toA(Machine(true, 10, 5))(simulateMachine(List(Coin))) shouldBe Tuple2(11, 5)
+    State.toA(Machine(true, 10, 5), simulateMachine(List(Coin))) shouldBe Tuple2(11, 5)
   }
 
   it should "reject a new coin when machine is unlocked" in {
-    State.toA(Machine(false, 10, 5))(simulateMachine(List(Coin))) shouldBe Tuple2(10, 5)
+    State.toA(Machine(false, 10, 5), simulateMachine(List(Coin))) shouldBe Tuple2(10, 5)
   }
 
   it should "reject a new coin when machine is locked and no candies left" in {
-    State.toA(Machine(true, 10, 0))(simulateMachine(List(Coin))) shouldBe Tuple2(10, 0)
+    State.toA(Machine(true, 10, 0), simulateMachine(List(Coin))) shouldBe Tuple2(10, 0)
   }
 
   it should "return a candy when machine is unlocked" in {
-    State.toA(Machine(false, 11, 5))(simulateMachine(List(Turn))) shouldBe Tuple2(11, 4)
+    State.toA(Machine(false, 11, 5), simulateMachine(List(Turn))) shouldBe Tuple2(11, 4)
   }
 
   it should "return no candy when machine is locked" in {
-    State.toA(Machine(true, 11, 5))(simulateMachine(List(Turn))) shouldBe Tuple2(11, 5)
+    State.toA(Machine(true, 11, 5), simulateMachine(List(Turn))) shouldBe Tuple2(11, 5)
   }
 
   it should "return the last state when a list of inputs given" in {
     val inputs = Coin :: Turn :: Coin :: Turn :: Coin :: Turn :: Coin :: Turn :: Nil
 
-    State.toA(Machine(true, 10, 5))(simulateMachine(inputs)) shouldBe Tuple2(14, 1)
+    State.toA(Machine(true, 10, 5), simulateMachine(inputs)) shouldBe Tuple2(14, 1)
   }
 }

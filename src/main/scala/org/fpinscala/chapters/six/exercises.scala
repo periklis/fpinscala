@@ -55,45 +55,37 @@ object Exercises {
 
     type Rand[+A] = RNG => (A, RNG)
 
-    def unit[A]: A => Rand[A] =
-      a => rng => (a, rng)
+    def unit[A](a: A): Rand[A] =
+      rng => (a, rng)
 
-    def map[A, B]: Rand[A] => (A => B) => Rand[B] =
-      r =>
-        f =>
-          g => {
-            val (v, rng2) = r(g)
-            (f(v), rng2)
+    def map[A, B](r: Rand[A])(f: A => B): Rand[B] =
+      g => {
+        val (v, rng2) = r(g)
+        (f(v), rng2)
       }
 
-    def map2[A, B, C]: Rand[A] => Rand[B] => ((A, B) => C) => Rand[C] =
-      a =>
-        b =>
-          f =>
-            rng => {
-              val (v1, rng2) = a(rng)
-              val (v2, rng3) = b(rng2)
-              (f(v1, v2), rng3)
+    def map2[A, B, C](a: Rand[A], b: Rand[B])(f: (A, B) => C): Rand[C] =
+      rng => {
+        val (v1, rng2) = a(rng)
+        val (v2, rng3) = b(rng2)
+        (f(v1, v2), rng3)
       }
 
-    def sequence[A]: List[Rand[A]] => Rand[List[A]] =
-      fs =>
-        rng => {
-          fs match {
-            case Nil => (Nil, rng)
-            case x :: xs => {
-              val (v, s) = x(rng)
-              map(sequence(xs))(v :: _)(s)
-            }
+    def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+      rng => {
+        fs match {
+          case Nil => (Nil, rng)
+          case x :: xs => {
+            val (v, s) = x(rng)
+            map(sequence(xs))(v :: _)(s)
           }
+        }
       }
 
-    def flatMap[A, B]: Rand[A] => (A => Rand[B]) => Rand[B] =
-      g =>
-        f =>
-          rng => {
-            val (v, rng2) = g(rng)
-            f(v)(rng2)
+    def flatMap[A, B](g: Rand[A])(f: A => Rand[B]): Rand[B] =
+      rng => {
+        val (v, rng2) = g(rng)
+        f(v)(rng2)
       }
 
     def nonNegativeNextIntViaRand: Rand[Int] =
@@ -110,11 +102,11 @@ object Exercises {
         })(_)
 
     object WithFlatMap {
-      def map[A, B]: Rand[A] => (A => B) => Rand[B] =
-        g => f => flatMap(g)(a => unit(f(a)))(_)
+      def map[A, B](g: Rand[A])(f: A => B): Rand[B] =
+        flatMap(g)(a => unit(f(a)))(_)
 
-      def map2[A, B, C]: Rand[A] => Rand[B] => ((A, B) => C) => Rand[C] =
-        g => h => f => flatMap(g)(a => map(h)(b => f(a, b)))(_)
+      def map2[A, B, C](g: Rand[A], h: Rand[B])(f: (A, B) => C): Rand[C] =
+        flatMap(g)(a => map(h)(b => f(a, b)))(_)
     }
 
     object WithRand {
@@ -126,46 +118,43 @@ object Exercises {
   case class State[S, +A](run: S => (A, S))
 
   object State {
-    def unit[S, A]: A => State[S, A] =
-      a => State(s => (a, s))
+    def unit[S, A](a: A): State[S, A] =
+      State(s => (a, s))
 
-    def flatMap[S, A, B]: State[S, A] => (A => State[S, B]) => State[S, B] =
-      s =>
-        f =>
-          State(s1 => {
-            val (v, s2) = s.run(s1)
-            f(v).run(s2)
-          })
+    def flatMap[S, A, B](s: State[S, A])(f: A => State[S, B]): State[S, B] =
+      State(s1 => {
+        val (v, s2) = s.run(s1)
+        f(v).run(s2)
+      })
 
-    def map[S, A, B]: State[S, A] => (A => B) => State[S, B] =
-      s => f => flatMap(s)(a => unit(f(a)))
+    def map[S, A, B](s: State[S, A])(f: A => B): State[S, B] =
+      flatMap(s)(a => unit(f(a)))
 
-    def map2[S, A, B, C]: State[S, A] => State[S, B] => ((A, B) => C) => State[S, C] =
-      s1 => s2 => f => flatMap(s1)(a => map(s2)(b => f(a, b)))
+    def map2[S, A, B, C](s1: State[S, A], s2: State[S, B])(f: (A, B) => C): State[S, C] =
+      flatMap(s1)(a => map(s2)(b => f(a, b)))
 
-    def sequence[S, A]: List[State[S, A]] => State[S, List[A]] =
-      fs =>
-        State(s => {
-          fs match {
-            case Nil => (Nil, s)
-            case x :: xs => {
-              val (v, s1) = x.run(s)
-              map(sequence(xs))(v :: _).run(s1)
-            }
+    def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] =
+      State(s => {
+        fs match {
+          case Nil => (Nil, s)
+          case x :: xs => {
+            val (v, s1) = x.run(s)
+            map(sequence(xs))(v :: _).run(s1)
           }
-        })
+        }
+      })
 
     // $COVERAGE-OFF$
     def get[S]: State[S, S] = State(s => (s, s))
 
-    def set[S]: S => State[S, Unit] = s => State(_ => ((), s))
+    def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 
-    def modify[S]: (S => S) => State[S, Unit] =
-      f => flatMap(get[S])(s => set(f(s)))
+    def modify[S](f: S => S): State[S, Unit] =
+      flatMap(get[S])(s => set(f(s)))
     // $COVERAGE-ON$
 
-    def toA[S, A]: S => State[S, A] => A =
-      s => st => st.run(s)._1
+    def toA[S, A](s: S, st: State[S, A]): A =
+      st.run(s)._1
   }
 
   type RNG2[A] = State[RNG, A]
@@ -180,14 +169,14 @@ object Exercises {
   case object Turn extends Input
   case class Machine(locked: Boolean, coins: Int, candies: Int)
 
-  def simulateMachine: List[Input] => State[Machine, (Int, Int)] =
-    _ match {
+  def simulateMachine(is: List[Input]): State[Machine, (Int, Int)] =
+    is match {
       case Nil             => State(s => ((s.coins, s.candies), s))
       case input :: inputs => State.flatMap(nextState(input))(_ => simulateMachine(inputs))
     }
 
-  private def nextState: Input => State[Machine, (Int, Int)] =
-    _ match {
+  private def nextState(i: Input): State[Machine, (Int, Int)] =
+    i match {
       case Coin => insertCoin
       case Turn => turnKnob
     }
