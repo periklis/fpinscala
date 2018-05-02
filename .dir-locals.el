@@ -1,7 +1,6 @@
-((nil
-  .
-  ((ensime-sbt-perform-on-save . "compile")))
+((nil . ())
  (scala-mode
   .
-  ((scala-indent:align-parameters . t)
-   (ensime-eldoc-hints . nil))))
+  ((ensime-sbt-perform-on-save . "compile")
+   (scala-indent:align-parameters . t)
+   (ensime-eldoc-hints . all))))
